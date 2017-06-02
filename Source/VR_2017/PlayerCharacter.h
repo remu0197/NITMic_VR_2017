@@ -12,19 +12,62 @@ class VR_2017_API APlayerCharacter : public ACharacter
 
 public:
 	// Sets default values for this character's properties
-	APlayerCharacter();
+	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	void MoveForward(float value);
+
+	void MoveRight(float value);
+
+	void OccurEvent();
+
+	class AUsableActor* GetUsableInView();
+
+private:
+	UPROPERTY(EditAnywhere)
+		UStaticMeshComponent* m_TurnAxis;
+
+	UPROPERTY(EditAnywhere)
+		UStaticMeshComponent* m_TopBodyMesh;
+
+	UPROPERTY(EditAnywhere)
+		UStaticMeshComponent* m_UnderBodyMesh;
+
+	UPROPERTY(EditAnywhere)
+		float maxTraceDistance;
+
+	const float heightOfCellphone = 65.0f;
+	const float distanceOfCellphone = -25.0f;
+
+	UCameraComponent* FirstPersonCamera;
+
+	bool m_isOperateCellphone;
 	
-	
+	unsigned int m_gotItemFlags;
+
+	void PickupItem(enum class ItemName itemName);
+	void LoseItem(enum class ItemName itemName);
+
+	void SetIsOperateCellphone();
+
+/******Debug*******/
+private:
+	static const float maxOpenAxis;
+	static const float openSpeed;
+
+	float m_openAxis;
+
+	//UPROPERTY(EditAnywhere)
+		//APostProcessVolume* APPV;
+
 };
