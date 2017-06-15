@@ -48,4 +48,6 @@ private:
 	bool m_isOpening, m_isClosing;
 	
 	void OpenCellphone(float deltaTime);
+
+
 };
