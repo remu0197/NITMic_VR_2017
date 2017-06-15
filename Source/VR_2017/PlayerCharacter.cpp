@@ -13,7 +13,9 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	m_gotItemFlags(0),
 	m_openAxis(160.0f),
 	lightUpAxis(0.0f),
-	lightRightAxis(0.0f)
+	lightRightAxis(0.0f),
+	RastAmount(0.0f),
+	m_interval(1.0f)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -23,7 +25,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	//focas setting(need to 
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldMethod = EDepthOfFieldMethod::DOFM_BokehDOF;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldMethod = false;
-	FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance = 100.0f;
+	FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance = 50.0f;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFocalDistance = false;
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalRegion = 300.0f;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFocalRegion = false;
@@ -60,8 +62,11 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	m_TopBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TopBodyMesh"));
 	m_TopBodyMesh->AttachTo(m_TurnAxis);
 
+	m_Screen = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Screen"));
+	m_Screen->AttachTo(m_TurnAxis);
+
 	//set step height
-	this->GetCharacterMovement()->MaxStepHeight = 10.0f;
+	this->GetCharacterMovement()->MaxStepHeight = 1000.0f;
 
 	//set walkable angle
 	//this->GetCharacterMovement()->SetWalkableFloorAngle = 45.0f;
@@ -90,12 +95,25 @@ void APlayerCharacter::Tick(float DeltaTime)
 			m_TurnAxis->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_openAxis)));
 			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
 		}
+		else
+		{
+			m_interval -= DeltaTime;
+			if (m_interval < 0.0f)
+			{
+				UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
+				if (ScreenInstance != nullptr)
+				{
+					GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, TEXT("close"));
+					ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 1.0f);
+				}
+			}
+		}
 	}
 	else
 	{
 		if (m_openAxis < maxOpenAxis)
 		{
-			m_openAxis += openSpeed * DeltaTime;
+			m_openAxis = maxOpenAxis;
 			m_TurnAxis->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_openAxis)));
 			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
 		}
@@ -231,6 +249,7 @@ void APlayerCharacter::SetIsOperateCellphone()
 	m_UnderBodyMesh->SetHiddenInGame(!m_isOperateCellphone);
 	m_TurnAxis->SetHiddenInGame(!m_isOperateCellphone);
 	m_TopBodyMesh->SetHiddenInGame(!m_isOperateCellphone);
+	m_Screen->SetHiddenInGame(!m_isOperateCellphone);
 
 	//camera focas setting
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldMethod = m_isOperateCellphone;
@@ -241,4 +260,15 @@ void APlayerCharacter::SetIsOperateCellphone()
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldScale = m_isOperateCellphone;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldNearBlurSize = m_isOperateCellphone;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFarBlurSize = m_isOperateCellphone;
+
+	if (!m_isOperateCellphone)
+	{
+		m_interval = 1.0f;
+		UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
+		if (ScreenInstance != nullptr)
+		{
+			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, TEXT("close"));
+			ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 0.0f);
+		}
+	}
 }
