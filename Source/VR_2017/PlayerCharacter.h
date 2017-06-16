@@ -72,6 +72,17 @@ private:
 	void LoseItem(enum class ItemName itemName);
 
 	void SetIsOperateCellphone();
+	void SetIsSquat();
+
+	void Squat(float deltaTime);
+
+	bool m_isSquat;
+
+	UPROPERTY(EditAnywhere)
+		float squatSpeed;
+
+	UPROPERTY(EditAnywhere)
+		float maxSquat;
 
 	float lightUpAxis, lightRightAxis;
 
