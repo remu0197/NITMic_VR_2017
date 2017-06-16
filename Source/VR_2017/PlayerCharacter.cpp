@@ -15,7 +15,10 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	lightUpAxis(0.0f),
 	lightRightAxis(0.0f),
 	RastAmount(0.0f),
-	m_interval(1.0f)
+	m_interval(1.0f),
+	squatSpeed(300.0f),
+	m_isSquat(false),
+	maxSquat(-25.0f)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -43,7 +46,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	FirstPersonCamera->AttachTo(RootComponent);
 
 	//Position the camera a bit above the eyes
-	FirstPersonCamera->RelativeLocation = FVector(0, 0, BaseEyeHeight);
+	FirstPersonCamera->RelativeLocation = FVector(0, 0, -1000);
 
 	//Allow the pawn to control rotation
 	FirstPersonCamera->bUsePawnControlRotation = true;
@@ -51,7 +54,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	m_Flashlight = CreateDefaultSubobject<USpotLightComponent>(TEXT("Flashlight"));
 	m_Flashlight->AttachTo(RootComponent);
 
-	m_Flashlight->RelativeLocation = FVector(0, 0, 0);
+	m_Flashlight->RelativeLocation = FVector(-50, 0, 0);
 
 	m_UnderBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnderBodyMesh"));
 	m_UnderBodyMesh->AttachTo(FirstPersonCamera);
@@ -66,7 +69,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	m_Screen->AttachTo(m_TurnAxis);
 
 	//set step height
-	this->GetCharacterMovement()->MaxStepHeight = 1000.0f;
+	this->GetCharacterMovement()->MaxStepHeight = 10.0f;
 
 	//set walkable angle
 	//this->GetCharacterMovement()->SetWalkableFloorAngle = 45.0f;
@@ -80,6 +83,7 @@ void APlayerCharacter::BeginPlay()
 	m_UnderBodyMesh->SetHiddenInGame(true);
 	m_TurnAxis->SetHiddenInGame(true);
 	m_TopBodyMesh->SetHiddenInGame(true);
+	m_Screen->SetHiddenInGame(true);
 }
 
 // Called every frame
@@ -103,7 +107,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 				UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
 				if (ScreenInstance != nullptr)
 				{
-					GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, TEXT("close"));
+					//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, TEXT("close"));
 					ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 1.0f);
 				}
 			}
@@ -118,6 +122,8 @@ void APlayerCharacter::Tick(float DeltaTime)
 			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
 		}
 	}
+
+	Squat(DeltaTime);
 }
 
 const float APlayerCharacter::maxOpenAxis = 160.0f;
@@ -140,6 +146,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	InputComponent->BindAction("OccurEvent", IE_Pressed, this, &APlayerCharacter::OccurEvent);
 
 	InputComponent->BindAction("OpenCellphone", IE_Pressed, this, &APlayerCharacter::SetIsOperateCellphone);
+
+	InputComponent->BindAction("Squat", IE_Pressed, this, &APlayerCharacter::SetIsSquat);
 }
 
 void APlayerCharacter::MoveForward(float value)
@@ -205,7 +213,7 @@ void APlayerCharacter::OccurEvent()
 		}
 		else if (!Usable)
 		{
-			//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Black, "Can not Trace");
+			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Can not Trace");
 		}
 	}
 }
@@ -267,8 +275,34 @@ void APlayerCharacter::SetIsOperateCellphone()
 		UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
 		if (ScreenInstance != nullptr)
 		{
-			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, TEXT("close"));
 			ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 0.0f);
+		}
+	}
+}
+
+void APlayerCharacter::SetIsSquat()
+{
+	//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, TEXT("close"));
+	m_isSquat = !m_isSquat;
+}
+
+void APlayerCharacter::Squat(float deltaTime)
+{
+	float cameraHeight = FirstPersonCamera->GetRelativeTransform().GetLocation().Z;
+	if (m_isSquat)
+	{
+		if (cameraHeight >= maxSquat)
+		{
+			cameraHeight -= squatSpeed * deltaTime;
+			FirstPersonCamera->SetRelativeLocation(FVector(0.0f, 0.0f, cameraHeight));
+		}
+	}
+	else
+	{
+		if (cameraHeight <= BaseEyeHeight)
+		{
+			cameraHeight += squatSpeed * deltaTime;
+			FirstPersonCamera->SetRelativeLocation(FVector(0.0f, 0.0f, cameraHeight));
 		}
 	}
 }
