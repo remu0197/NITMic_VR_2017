@@ -78,14 +78,7 @@ private:
 
 	float m_openAxis;
 
-	void SetIsSquat();
-	void Squat(float deltaTime);
+	//UPROPERTY(EditAnywhere)
+		//APostProcessVolume* APPV;
 
-	UPROPERTY(EditAnywhere)
-	float maxSquat;
-
-	UPROPERTY(EditAnywhere)
-	float squatSpeed;
-
-	bool m_isSquat;
 };

@@ -13,18 +13,14 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	m_gotItemFlags(0),
 	m_openAxis(160.0f),
 	lightUpAxis(0.0f),
-	lightRightAxis(0.0f),
-	maxSquat(-25.0f),
-	squatSpeed(300.0f),
-	m_isSquat(false)
+	lightRightAxis(0.0f)
 {
-	
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	FirstPersonCamera = ObjectInitialier.CreateDefaultSubobject<UCameraComponent>(this, TEXT("FirstPersonCamera"));
 
-	//focas setting
+	//focas setting(need to 
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldMethod = EDepthOfFieldMethod::DOFM_BokehDOF;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldMethod = false;
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance = 100.0f;
@@ -51,7 +47,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	FirstPersonCamera->bUsePawnControlRotation = true;
 
 	m_Flashlight = CreateDefaultSubobject<USpotLightComponent>(TEXT("Flashlight"));
-	m_Flashlight->AttachTo(GetCapsuleComponent());
+	m_Flashlight->AttachTo(RootComponent);
 
 	m_Flashlight->RelativeLocation = FVector(0, 0, 0);
 
@@ -76,9 +72,9 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	m_UnderBodyMesh->SetHiddenInGame(true);
-	m_TurnAxis->SetHiddenInGame(true);
-	m_TopBodyMesh->SetHiddenInGame(true);
+	m_UnderBodyMesh->SetHiddenInGame(false);
+	m_TurnAxis->SetHiddenInGame(false);
+	m_TopBodyMesh->SetHiddenInGame(false);
 }
 
 // Called every frame
@@ -104,8 +100,6 @@ void APlayerCharacter::Tick(float DeltaTime)
 			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
 		}
 	}
-
-	Squat(DeltaTime);
 }
 
 const float APlayerCharacter::maxOpenAxis = 160.0f;
@@ -126,8 +120,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	InputComponent->BindAction("OccurEvent", IE_Pressed, this, &APlayerCharacter::OccurEvent);
 
 	InputComponent->BindAction("OpenCellphone", IE_Pressed, this, &APlayerCharacter::SetIsOperateCellphone);
-
-	InputComponent->BindAction("Squat", IE_Pressed, this, &APlayerCharacter::SetIsSquat);
 }
 
 void APlayerCharacter::MoveForward(float value)
@@ -247,30 +239,4 @@ void APlayerCharacter::SetIsOperateCellphone()
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldScale = m_isOperateCellphone;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldNearBlurSize = m_isOperateCellphone;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFarBlurSize = m_isOperateCellphone;
-}
-
-void APlayerCharacter::SetIsSquat()
-{
-	m_isSquat = !m_isSquat;
-}
-
-void APlayerCharacter::Squat(float deltaTime)
-{
-	float cameraHeight = FirstPersonCamera->GetRelativeTransform().GetLocation().Z;
-	if (m_isSquat)
-	{
-		if (cameraHeight >= maxSquat)
-		{
-			cameraHeight -= squatSpeed * deltaTime;
-			FirstPersonCamera->SetRelativeLocation(FVector(0.0f, 0.0f, cameraHeight));
-		}
-	}
-	else
-	{
-		if (cameraHeight <= BaseEyeHeight)
-		{
-			cameraHeight += squatSpeed * deltaTime;
-			FirstPersonCamera->SetRelativeLocation(FVector(0.0f, 0.0f, cameraHeight));
-		}
-	}
 }
