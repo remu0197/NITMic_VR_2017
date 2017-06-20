@@ -30,7 +30,7 @@ void AUsableActor::Tick(float DeltaTime)
 
 }
 
-ItemName AUsableActor::Event()
+ItemName AUsableActor::Event(const float innerProduct)
 {
 	/****************** For Debug ***************************************/
 

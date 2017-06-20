@@ -43,7 +43,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldFarBlurSize = 5.72;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFarBlurSize = false;
 
-	FirstPersonCamera->AttachTo(RootComponent);
+	FirstPersonCamera->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	//Position the camera a bit above the eyes
 	FirstPersonCamera->RelativeLocation = FVector(0, 0, -1000);
@@ -52,21 +52,21 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	FirstPersonCamera->bUsePawnControlRotation = true;
 
 	m_Flashlight = CreateDefaultSubobject<USpotLightComponent>(TEXT("Flashlight"));
-	m_Flashlight->AttachTo(RootComponent);
+	m_Flashlight->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	m_Flashlight->RelativeLocation = FVector(-50, 0, 0);
 
 	m_UnderBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnderBodyMesh"));
-	m_UnderBodyMesh->AttachTo(FirstPersonCamera);
+	m_UnderBodyMesh->AttachToComponent(FirstPersonCamera, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	m_TurnAxis = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TurnAxis"));
-	m_TurnAxis->AttachTo(m_UnderBodyMesh);
+	m_TurnAxis->AttachToComponent(m_UnderBodyMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	m_TopBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TopBodyMesh"));
-	m_TopBodyMesh->AttachTo(m_TurnAxis);
+	m_TopBodyMesh->AttachToComponent(m_TurnAxis, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	m_Screen = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Screen"));
-	m_Screen->AttachTo(m_TurnAxis);
+	m_Screen->AttachToComponent(m_TurnAxis, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	//set step height
 	this->GetCharacterMovement()->MaxStepHeight = 10.0f;
@@ -202,14 +202,19 @@ void APlayerCharacter::OccurEvent()
 		AUsableActor* Usable = GetUsableInView();
 		ItemName item;
 
+		//UsableActorのX軸ベクトルとUsableActorからPlayerへのベクトルの内積を計算したい
+		FVector temp = Usable->GetTransform().GetUnitAxis(EAxis::X);
+		FVector temp2 = Usable->GetActorLocation();
+		temp2 = this->GetActorLocation() - temp2;
+		float dir = FVector::DotProduct(temp, temp2);
+
 		if (Usable)
 		{
-			item = Usable->Event();
+			item = Usable->Event(dir);
 			if (item != ItemName::noItem)
 			{
 				PickupItem(item);
 			}
-			//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Black, FString::Printf(TEXT("flag is %d"), m_gotItemFlags));
 		}
 		else if (!Usable)
 		{
