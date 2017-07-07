@@ -17,9 +17,9 @@ ADoorActor::ADoorActor() :
 	m_Parent->AttachTo(GetRootComponent());
 
 	m_BoxTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxTrigger"));
-	m_BoxTrigger->bGenerateOverlapEvents = true;
-	m_BoxTrigger->OnComponentBeginOverlap.AddDynamic(this, &ADoorActor::TriggerEnter);
-	m_BoxTrigger->OnComponentEndOverlap.AddDynamic(this, &ADoorActor::TriggerExit);
+	//m_BoxTrigger->bGenerateOverlapEvents = true;
+	//m_BoxTrigger->>OnComponentBeginOverlap.AddDynamic(this, &ADoorActor::TriggerEnter);
+	//m_BoxTrigger->OnComponentEndOverlap.AddDynamic(this, &ADoorActor::TriggerExit);
 	m_BoxTrigger->AttachTo(m_Parent);
 
 	m_TurnAxis = CreateDefaultSubobject<UBoxComponent>(TEXT("TurnAxis"));
@@ -47,10 +47,12 @@ void ADoorActor::Tick(float DeltaTime)
 	{
 		OpenDoor(DeltaTime);
 	}
+	/*  Can't close
 	else
 	{
 		CloseDoor(DeltaTime);
 	}
+	*/
 }
 
 ItemName ADoorActor::Event()
@@ -78,6 +80,10 @@ void ADoorActor::OpenDoor(float deltaTime)
 	{
 		doorAngle += openSpeed * deltaTime;
 		m_TurnAxis->SetRelativeRotation(FQuat(FRotator(0.0f, doorAngle, 0.0f)));
+	}
+	else
+	{
+		m_isOpen = false;
 	}
 }
 

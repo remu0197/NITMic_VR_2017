@@ -2,6 +2,7 @@
 
 #include "VR_2017.h"
 #include "Engine.h"
+#include "CellphoneManager.h"
 #include "PlayerCharacter.h"
 #include "UsableActor.h"
 
@@ -18,20 +19,26 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	m_interval(1.0f),
 	squatSpeed(300.0f),
 	m_isSquat(false),
-	maxSquat(-25.0f)
+	maxSquat(-25.0f),
+	temp(0.1f),
+	temp2(34.0f),
+	dir(1),
+	dir2(0)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	FirstPersonCamera = ObjectInitialier.CreateDefaultSubobject<UCameraComponent>(this, TEXT("FirstPersonCamera"));
 
+	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
+	CameraArm->AttachTo(RootComponent);
+	CameraArm->RelativeLocation = FVector(0.0f, 0.0f, 40.0f);
+
 	//focas setting(need to 
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldMethod = EDepthOfFieldMethod::DOFM_BokehDOF;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldMethod = false;
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance = 50.0f;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFocalDistance = false;
-	FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalRegion = 300.0f;
-	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFocalRegion = false;
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldNearTransitionRegion = 0.0f;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldNearTransitionRegion = false;
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldFarTransitionRegion = 1600.0f;
@@ -43,13 +50,16 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldFarBlurSize = 5.72;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFarBlurSize = false;
 
-	FirstPersonCamera->AttachTo(RootComponent);
+	FirstPersonCamera->AttachTo(CameraArm);
 
 	//Position the camera a bit above the eyes
-	FirstPersonCamera->RelativeLocation = FVector(0, 0, -1000);
+	FirstPersonCamera->RelativeLocation = FVector(0, 0, 0);
 
 	//Allow the pawn to control rotation
 	FirstPersonCamera->bUsePawnControlRotation = true;
+
+	m_cellphone = CreateDefaultSubobject<ACellphoneManager>(TEXT("Cellphone"));
+	m_cellphone->AttachToComponent(FirstPersonCamera, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	m_Flashlight = CreateDefaultSubobject<USpotLightComponent>(TEXT("Flashlight"));
 	m_Flashlight->AttachTo(RootComponent);
@@ -98,6 +108,15 @@ void APlayerCharacter::Tick(float DeltaTime)
 			m_openAxis -= openSpeed * DeltaTime;
 			m_TurnAxis->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_openAxis)));
 			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
+			UCapsuleComponent *capsule = GetCapsuleComponent();
+			if (temp2 < 70.0f)
+			{
+				temp2 += 0.5f;
+				++dir;
+				++dir2;
+				capsule->SetCapsuleRadius(temp2);
+				this->GetCharacterMovement()->Velocity = FVector(temp * dir, temp * dir2, 0);
+			}
 		}
 		else
 		{
@@ -163,12 +182,34 @@ void APlayerCharacter::MoveForward(float value)
 
 void APlayerCharacter::MoveRight(float value)
 {
-	if ((Controller != NULL) && (value != 0) && !m_isOperateCellphone)
+	if (!m_isOperateCellphone)
 	{
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FVector Direction = FRotationMatrix(Rotation).GetScaledAxis(EAxis::Y);
+		if ((Controller != NULL) && (value != 0))
+		{
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FVector Direction = FRotationMatrix(Rotation).GetScaledAxis(EAxis::Y);
 
-		AddMovementInput(Direction, value);
+			AddMovementInput(Direction, value);
+		}
+	}
+	else
+	{
+		if (value < 0)
+		{
+			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
+			if (ScreenInstance != nullptr)
+			{
+				ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 0.0f);
+			}
+		}
+		else if (value > 0)
+		{
+			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
+			if (ScreenInstance != nullptr)
+			{
+				ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 1.0f);
+			}
+		}
 	}
 }
 
@@ -188,11 +229,6 @@ void APlayerCharacter::RightFlashlight(float value)
 		lightRightAxis += value;
 		m_Flashlight->SetRelativeRotation(FQuat(FRotator(lightUpAxis, lightRightAxis, 0.0f)));
 	}
-}
-
-void APlayerCharacter::SquatView()
-{
-
 }
 
 void APlayerCharacter::OccurEvent()
@@ -262,7 +298,6 @@ void APlayerCharacter::SetIsOperateCellphone()
 	//camera focas setting
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldMethod = m_isOperateCellphone;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFocalDistance = m_isOperateCellphone;
-	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFocalRegion = m_isOperateCellphone;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldNearTransitionRegion = m_isOperateCellphone;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFarTransitionRegion = m_isOperateCellphone;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldScale = m_isOperateCellphone;
@@ -288,13 +323,13 @@ void APlayerCharacter::SetIsSquat()
 
 void APlayerCharacter::Squat(float deltaTime)
 {
-	float cameraHeight = FirstPersonCamera->GetRelativeTransform().GetLocation().Z;
+	float cameraHeight = CameraArm->GetRelativeTransform().GetLocation().Z;
 	if (m_isSquat)
 	{
 		if (cameraHeight >= maxSquat)
 		{
 			cameraHeight -= squatSpeed * deltaTime;
-			FirstPersonCamera->SetRelativeLocation(FVector(0.0f, 0.0f, cameraHeight));
+			CameraArm->SetRelativeLocation(FVector(0.0f, 0.0f, cameraHeight));
 		}
 	}
 	else
@@ -302,7 +337,7 @@ void APlayerCharacter::Squat(float deltaTime)
 		if (cameraHeight <= BaseEyeHeight)
 		{
 			cameraHeight += squatSpeed * deltaTime;
-			FirstPersonCamera->SetRelativeLocation(FVector(0.0f, 0.0f, cameraHeight));
+			CameraArm->SetRelativeLocation(FVector(0.0f, 0.0f, cameraHeight));
 		}
 	}
 }
