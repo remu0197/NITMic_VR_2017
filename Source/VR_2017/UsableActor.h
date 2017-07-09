@@ -33,7 +33,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual ItemName Event(const float innerProduct);
+	virtual ItemName Event();
 
 protected:
 	UPROPERTY(EditAnywhere)
