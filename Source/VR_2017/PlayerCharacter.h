@@ -80,13 +80,14 @@ private:
 
 	bool m_isSquat;
 
-	UPROPERTY(EditAnywhere)
-	float temp;
+	const float correctDistance = 15.0f;
 
-	float temp2;
+	float m_capsuleRadius;
+	const float originalCapsuleRadius = 34.0f;
 
-	int dir : 2;
-	int dir2 : 2;
+	int m_correctDirectionX : 2;
+
+	int m_correctDirectionY : 2;
 
 	UPROPERTY(EditAnywhere)
 		float squatSpeed;

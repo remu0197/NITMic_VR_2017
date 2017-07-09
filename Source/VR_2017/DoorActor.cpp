@@ -62,11 +62,13 @@ ItemName ADoorActor::Event()
 	return ItemName::noItem;
 }
 
+/*
 void ADoorActor::TriggerEnter(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	//m_isOpen = true;
 	//openDirection = 1.0f;
 }
+*/
 
 void ADoorActor::TriggerExit(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
