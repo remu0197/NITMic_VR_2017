@@ -80,12 +80,13 @@ private:
 
 	bool m_isSquat;
 
-	const float correctDistance = 50.0f;
+	const float correctDistance = 15.0f;
 
 	float m_capsuleRadius;
 	const float originalCapsuleRadius = 34.0f;
 
 	int m_correctDirectionX : 2;
+
 	int m_correctDirectionY : 2;
 
 	UPROPERTY(EditAnywhere)

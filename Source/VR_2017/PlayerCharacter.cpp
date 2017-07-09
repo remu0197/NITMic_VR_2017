@@ -31,8 +31,9 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	FirstPersonCamera = ObjectInitialier.CreateDefaultSubobject<UCameraComponent>(this, TEXT("FirstPersonCamera"));
 
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
-	CameraArm->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	CameraArm->TargetArmLength = 0.0f;
 	CameraArm->RelativeLocation = FVector(0.0f, 0.0f, 40.0f);
+	CameraArm->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	//focas setting(need to 
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldMethod = EDepthOfFieldMethod::DOFM_BokehDOF;
@@ -51,9 +52,6 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFarBlurSize = false;
 
 	FirstPersonCamera->AttachToComponent(CameraArm, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-
-	//Position the camera a bit above the eyes
-	FirstPersonCamera->RelativeLocation = FVector(0, 0, 0);
 
 	//Allow the pawn to control rotation
 	FirstPersonCamera->bUsePawnControlRotation = true;
@@ -163,6 +161,9 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	InputComponent->BindAxis("Turn", this, &APlayerCharacter::RightFlashlight/*AddControllerYawInput*/);
 	InputComponent->BindAxis("LookUp", this, &APlayerCharacter::UpFlashlight/*AddControllerPitchInput*/);
+
+	InputComponent->BindAxis("TurnDebug", this, &APlayerCharacter::AddControllerYawInput);
+	InputComponent->BindAxis("LookUpDebug", this, &APlayerCharacter::AddControllerPitchInput);
 
 	InputComponent->BindAction("OccurEvent", IE_Pressed, this, &APlayerCharacter::OccurEvent);
 
