@@ -13,7 +13,12 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	m_gotItemFlags(0),
 	m_openAxis(160.0f),
 	lightUpAxis(0.0f),
-	lightRightAxis(0.0f)
+	lightRightAxis(0.0f),
+	RastAmount(0.0f),
+	m_interval(1.0f),
+	squatSpeed(300.0f),
+	m_isSquat(false),
+	maxSquat(-25.0f)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -23,7 +28,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	//focas setting(need to 
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldMethod = EDepthOfFieldMethod::DOFM_BokehDOF;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldMethod = false;
-	FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance = 100.0f;
+	FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance = 50.0f;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFocalDistance = false;
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalRegion = 300.0f;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFocalRegion = false;
@@ -41,7 +46,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	FirstPersonCamera->AttachTo(RootComponent);
 
 	//Position the camera a bit above the eyes
-	FirstPersonCamera->RelativeLocation = FVector(0, 0, BaseEyeHeight);
+	FirstPersonCamera->RelativeLocation = FVector(0, 0, -1000);
 
 	//Allow the pawn to control rotation
 	FirstPersonCamera->bUsePawnControlRotation = true;
@@ -49,7 +54,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	m_Flashlight = CreateDefaultSubobject<USpotLightComponent>(TEXT("Flashlight"));
 	m_Flashlight->AttachTo(RootComponent);
 
-	m_Flashlight->RelativeLocation = FVector(0, 0, 0);
+	m_Flashlight->RelativeLocation = FVector(-50, 0, 0);
 
 	m_UnderBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnderBodyMesh"));
 	m_UnderBodyMesh->AttachTo(FirstPersonCamera);
@@ -59,6 +64,9 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 
 	m_TopBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TopBodyMesh"));
 	m_TopBodyMesh->AttachTo(m_TurnAxis);
+
+	m_Screen = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Screen"));
+	m_Screen->AttachTo(m_TurnAxis);
 
 	//set step height
 	this->GetCharacterMovement()->MaxStepHeight = 10.0f;
@@ -75,6 +83,7 @@ void APlayerCharacter::BeginPlay()
 	m_UnderBodyMesh->SetHiddenInGame(true);
 	m_TurnAxis->SetHiddenInGame(true);
 	m_TopBodyMesh->SetHiddenInGame(true);
+	m_Screen->SetHiddenInGame(true);
 }
 
 // Called every frame
@@ -90,16 +99,31 @@ void APlayerCharacter::Tick(float DeltaTime)
 			m_TurnAxis->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_openAxis)));
 			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
 		}
+		else
+		{
+			m_interval -= DeltaTime;
+			if (m_interval < 0.0f)
+			{
+				UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
+				if (ScreenInstance != nullptr)
+				{
+					//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, TEXT("close"));
+					ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 1.0f);
+				}
+			}
+		}
 	}
 	else
 	{
 		if (m_openAxis < maxOpenAxis)
 		{
-			m_openAxis += openSpeed * DeltaTime;
+			m_openAxis = maxOpenAxis;
 			m_TurnAxis->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_openAxis)));
 			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
 		}
 	}
+
+	Squat(DeltaTime);
 }
 
 const float APlayerCharacter::maxOpenAxis = 160.0f;
@@ -122,6 +146,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	InputComponent->BindAction("OccurEvent", IE_Pressed, this, &APlayerCharacter::OccurEvent);
 
 	InputComponent->BindAction("OpenCellphone", IE_Pressed, this, &APlayerCharacter::SetIsOperateCellphone);
+
+	InputComponent->BindAction("Squat", IE_Pressed, this, &APlayerCharacter::SetIsSquat);
 }
 
 void APlayerCharacter::MoveForward(float value)
@@ -187,7 +213,7 @@ void APlayerCharacter::OccurEvent()
 		}
 		else if (!Usable)
 		{
-			//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Black, "Can not Trace");
+			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Can not Trace");
 		}
 	}
 }
@@ -231,6 +257,7 @@ void APlayerCharacter::SetIsOperateCellphone()
 	m_UnderBodyMesh->SetHiddenInGame(!m_isOperateCellphone);
 	m_TurnAxis->SetHiddenInGame(!m_isOperateCellphone);
 	m_TopBodyMesh->SetHiddenInGame(!m_isOperateCellphone);
+	m_Screen->SetHiddenInGame(!m_isOperateCellphone);
 
 	//camera focas setting
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldMethod = m_isOperateCellphone;
@@ -241,4 +268,41 @@ void APlayerCharacter::SetIsOperateCellphone()
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldScale = m_isOperateCellphone;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldNearBlurSize = m_isOperateCellphone;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFarBlurSize = m_isOperateCellphone;
+
+	if (!m_isOperateCellphone)
+	{
+		m_interval = 1.0f;
+		UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
+		if (ScreenInstance != nullptr)
+		{
+			ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 0.0f);
+		}
+	}
+}
+
+void APlayerCharacter::SetIsSquat()
+{
+	//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, TEXT("close"));
+	m_isSquat = !m_isSquat;
+}
+
+void APlayerCharacter::Squat(float deltaTime)
+{
+	float cameraHeight = FirstPersonCamera->GetRelativeTransform().GetLocation().Z;
+	if (m_isSquat)
+	{
+		if (cameraHeight >= maxSquat)
+		{
+			cameraHeight -= squatSpeed * deltaTime;
+			FirstPersonCamera->SetRelativeLocation(FVector(0.0f, 0.0f, cameraHeight));
+		}
+	}
+	else
+	{
+		if (cameraHeight <= BaseEyeHeight)
+		{
+			cameraHeight += squatSpeed * deltaTime;
+			FirstPersonCamera->SetRelativeLocation(FVector(0.0f, 0.0f, cameraHeight));
+		}
+	}
 }

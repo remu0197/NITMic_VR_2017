@@ -50,6 +50,9 @@ private:
 		UStaticMeshComponent* m_UnderBodyMesh;
 
 	UPROPERTY(EditAnywhere)
+		UStaticMeshComponent* m_Screen;
+
+	UPROPERTY(EditAnywhere)
 		float maxTraceDistance;
 
 	UPROPERTY(EditAnywhere)
@@ -58,7 +61,8 @@ private:
 	const float heightOfCellphone = 65.0f;
 	const float distanceOfCellphone = -25.0f;
 
-	UCameraComponent* FirstPersonCamera;
+	UPROPERTY(EditAnywhere)
+		UCameraComponent* FirstPersonCamera;
 
 	bool m_isOperateCellphone;
 	
@@ -68,15 +72,30 @@ private:
 	void LoseItem(enum class ItemName itemName);
 
 	void SetIsOperateCellphone();
+	void SetIsSquat();
+
+	void Squat(float deltaTime);
+
+	bool m_isSquat;
+
+	UPROPERTY(EditAnywhere)
+		float squatSpeed;
+
+	UPROPERTY(EditAnywhere)
+		float maxSquat;
 
 	float lightUpAxis, lightRightAxis;
 
 /******Debug*******/
 private:
 	static const float maxOpenAxis;
+
 	static const float openSpeed;
 
-	float m_openAxis;
+	float m_openAxis,m_interval;
+
+	UPROPERTY(EditAnywhere)
+		float RastAmount;
 
 	//UPROPERTY(EditAnywhere)
 		//APostProcessVolume* APPV;
