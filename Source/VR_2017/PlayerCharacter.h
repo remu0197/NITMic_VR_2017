@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
+
 UCLASS()
 class VR_2017_API APlayerCharacter : public ACharacter
 {
@@ -33,8 +34,6 @@ public:
 
 	void RightFlashlight(float value);
 
-	void SquatView();
-
 	void OccurEvent();
 
 	class AUsableActor* GetUsableInView();
@@ -62,6 +61,9 @@ private:
 	const float distanceOfCellphone = -25.0f;
 
 	UPROPERTY(EditAnywhere)
+		USpringArmComponent* CameraArm;
+
+	UPROPERTY(EditAnywhere)
 		UCameraComponent* FirstPersonCamera;
 
 	bool m_isOperateCellphone;
@@ -77,6 +79,15 @@ private:
 	void Squat(float deltaTime);
 
 	bool m_isSquat;
+
+	const float correctDistance = 15.0f;
+
+	float m_capsuleRadius;
+	const float originalCapsuleRadius = 34.0f;
+
+	int m_correctDirectionX : 2;
+
+	int m_correctDirectionY : 2;
 
 	UPROPERTY(EditAnywhere)
 		float squatSpeed;
@@ -97,7 +108,5 @@ private:
 	UPROPERTY(EditAnywhere)
 		float RastAmount;
 
-	//UPROPERTY(EditAnywhere)
-		//APostProcessVolume* APPV;
-
+	class ACellphoneManager* m_cellphone;
 };
