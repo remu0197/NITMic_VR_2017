@@ -25,8 +25,8 @@ public:
 
 	virtual ItemName Event() override;
 
-	UFUNCTION()
-		void TriggerEnter(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	//UFUNCTION()
+		//void TriggerEnter(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
 		void TriggerExit(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
@@ -44,7 +44,6 @@ private:
 	static const float openSpeed;
 	static const float maxOpenAngle;
 
-	UPROPERTY(EditAnywhere)
 	bool m_isOpen;
 
 	void OpenDoor(float deltaTime);
@@ -52,4 +51,7 @@ private:
 	void CloseDoor(float deltaTime);
 
 	float doorAngle;
+
+	UPROPERTY(EditAnywhere)
+		float openDir;
 };
