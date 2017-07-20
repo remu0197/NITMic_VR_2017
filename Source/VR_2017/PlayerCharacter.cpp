@@ -106,17 +106,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 			m_openAxis -= openSpeed * DeltaTime;
 			m_TurnAxis->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_openAxis)));
 			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
-			UCapsuleComponent *capsule = GetCapsuleComponent();
-
-			//Œg‘Ñ‚ª‚ß‚è‚Ü‚È‚¢‚½‚ß‚ÉA“–‚½‚è”»’è‚ğˆê•â³
-			if (m_capsuleRadius < 70.0f)
-			{
-				m_capsuleRadius += 0.5f;
-				++m_correctDirectionX;
-				++m_correctDirectionY;
-				capsule->SetCapsuleRadius(m_capsuleRadius);
-				this->GetCharacterMovement()->Velocity = FVector(correctDistance * m_correctDirectionX, correctDistance * m_correctDirectionY, 0);
-			}
+			
 		}
 		else
 		{
@@ -130,6 +120,19 @@ void APlayerCharacter::Tick(float DeltaTime)
 					ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 1.0f);
 				}
 			}
+		}
+
+		UCapsuleComponent *capsule = GetCapsuleComponent();
+
+		//Œg‘Ñ‚ª‚ß‚è‚Ü‚È‚¢‚½‚ß‚ÉA“–‚½‚è”»’è‚ğˆê•â³
+		if (m_capsuleRadius < 80.0f)
+		{
+			m_capsuleRadius += 0.5f;
+			++m_correctDirectionX;
+			++m_correctDirectionY;
+			capsule->SetCapsuleRadius(m_capsuleRadius);
+			this->GetCharacterMovement()->AddInputVector(FVector(0.f, correctDistance * m_correctDirectionY, 0.f));
+			//= FVector(correctDistance * m_correctDirectionX, correctDistance * m_correctDirectionY, 0);
 		}
 	}
 	else
@@ -236,24 +239,39 @@ void APlayerCharacter::RightFlashlight(float value)
 
 void APlayerCharacter::OccurEvent()
 {
-	if (!m_isOperateCellphone)
-	{
-		AUsableActor* Usable = GetUsableInView();
-		ItemName item;
+	//if (!m_isOperateCellphone)
+	//{
+	//	AUsableActor* Usable = GetUsableInView();
+	//	ItemName item;
 
-		if (Usable)
-		{
-			item = Usable->Event();
-			if (item != ItemName::noItem)
-			{
-				PickupItem(item);
-			}
-			//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Black, FString::Printf(TEXT("flag is %d"), m_gotItemFlags));
-		}
-		else if (!Usable)
-		{
-			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Can not Trace");
-		}
+	//	if (Usable)
+	//	{
+	//		item = Usable->Event();
+	//		if (item != ItemName::noItem)
+	//		{
+	//			PickupItem(item);
+	//		}
+	//		//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Black, FString::Printf(TEXT("flag is %d"), m_gotItemFlags));
+	//	}
+	//	else if (!Usable)
+	//	{
+	//		GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Can not Trace");
+	//	}
+	//}
+
+	if (Controller != NULL)
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FVector Direction = FRotationMatrix(Rotation).GetScaledAxis(EAxis::Y);
+
+		this->GetMovementComponent()->AddInputVector(Direction * 1.0f);
+
+		FString TheFloatStr = FString::SanitizeFloat(Direction.X);
+		GEngine->AddOnScreenDebugMessage(-1, 1.0, FColor::Red, *TheFloatStr);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "miss");
 	}
 }
 
