@@ -239,39 +239,29 @@ void APlayerCharacter::RightFlashlight(float value)
 
 void APlayerCharacter::OccurEvent()
 {
-	//if (!m_isOperateCellphone)
-	//{
-	//	AUsableActor* Usable = GetUsableInView();
-	//	ItemName item;
-
-	//	if (Usable)
-	//	{
-	//		item = Usable->Event();
-	//		if (item != ItemName::noItem)
-	//		{
-	//			PickupItem(item);
-	//		}
-	//		//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Black, FString::Printf(TEXT("flag is %d"), m_gotItemFlags));
-	//	}
-	//	else if (!Usable)
-	//	{
-	//		GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Can not Trace");
-	//	}
-	//}
-
-	if (Controller != NULL)
+	if (!m_isOperateCellphone)
 	{
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FVector Direction = FRotationMatrix(Rotation).GetScaledAxis(EAxis::Y);
+		AUsableActor* Usable = GetUsableInView();
+		ItemName item;
 
-		this->GetMovementComponent()->AddInputVector(Direction * 1.0f);
+		if (Usable)
+		{
+			//UsableActorのX軸ベクトルとUsableActorからPlayerへのベクトルの内積を計算したい
+			FVector temp = Usable->GetTransform().GetUnitAxis(EAxis::X);
+			FVector temp2 = Usable->GetActorLocation();
+			temp2 = this->GetActorLocation() - temp2;
+			float dir = FVector::DotProduct(temp, temp2);
 
-		FString TheFloatStr = FString::SanitizeFloat(Direction.X);
-		GEngine->AddOnScreenDebugMessage(-1, 1.0, FColor::Red, *TheFloatStr);
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "miss");
+			item = Usable->Event(dir);
+			if (item != ItemName::noItem)
+			{
+				PickupItem(item);
+			}
+		}
+		else if (!Usable)
+		{
+			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Can not Trace");
+		}
 	}
 }
 

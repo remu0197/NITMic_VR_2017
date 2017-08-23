@@ -33,11 +33,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual ItemName Event();
+	virtual ItemName Event(const int innerProduct);
 
 protected:
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* m_MyMesh;
+
+	UPROPERTY(EditAnywhere)
+		USoundBase* m_SoundEffect;
 
 private:
 	UPROPERTY(EditAnywhere)
