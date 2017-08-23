@@ -55,20 +55,22 @@ void ADoorActor::Tick(float DeltaTime)
 	*/
 }
 
-ItemName ADoorActor::Event()
+ItemName ADoorActor::Event(const int innerProduct)
 {
 	m_isOpen = true;
-	m_MyMesh->StaticMesh->StaticMaterials[0] = m_MyMesh->StaticMesh->StaticMaterials[2];
+
+	if (innerProduct > 0)
+		openDir = -1;
+	else
+		openDir = 1;
+
+	if (m_SoundEffect != NULL)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, m_SoundEffect, GetActorLocation());
+	}
+
 	return ItemName::noItem;
 }
-
-/*
-void ADoorActor::TriggerEnter(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	//m_isOpen = true;
-	//openDirection = 1.0f;
-}
-*/
 
 void ADoorActor::TriggerExit(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {

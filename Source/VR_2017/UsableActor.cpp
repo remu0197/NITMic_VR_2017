@@ -30,7 +30,7 @@ void AUsableActor::Tick(float DeltaTime)
 
 }
 
-ItemName AUsableActor::Event()
+ItemName AUsableActor::Event(const int innerProduct)
 {
 	/****************** For Debug ***************************************/
 
@@ -42,9 +42,14 @@ ItemName AUsableActor::Event()
 		{ItemName::chair, "chair"}
 	};
 
-	FString item = "You got " + myMap.at(m_itemName);
+	FString DebugMessage = "";
 
-	GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, item);
+	if (m_itemName != ItemName::noItem)
+	{
+		DebugMessage = "You got " + myMap.at(m_itemName);
+	}
+
+	GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, DebugMessage);
 
 	/*********************************************************************/
 
@@ -52,6 +57,8 @@ ItemName AUsableActor::Event()
 	//SetActorHiddenInGame(true);
 	//SetActorEnableCollision(false);
 	//SetActorTickEnabled(false);
+
+	this->SetActorHiddenInGame(true);
 
 	return m_itemName;
 }
