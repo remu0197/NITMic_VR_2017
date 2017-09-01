@@ -108,5 +108,5 @@ private:
 	UPROPERTY(EditAnywhere)
 		float RastAmount;
 
-	class ACellphoneManager* m_cellphone;
+	//class ACellphoneManager* m_cellphone;
 };

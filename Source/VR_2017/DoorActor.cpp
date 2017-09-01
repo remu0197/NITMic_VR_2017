@@ -14,18 +14,18 @@ ADoorActor::ADoorActor() :
 	PrimaryActorTick.bCanEverTick = true;
 
 	m_Parent = CreateDefaultSubobject<USceneComponent>(TEXT("Parent"));
-	m_Parent->AttachTo(GetRootComponent());
+	m_Parent->SetupAttachment(GetRootComponent());
 
 	m_BoxTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxTrigger"));
 	//m_BoxTrigger->bGenerateOverlapEvents = true;
 	//m_BoxTrigger->>OnComponentBeginOverlap.AddDynamic(this, &ADoorActor::TriggerEnter);
 	//m_BoxTrigger->OnComponentEndOverlap.AddDynamic(this, &ADoorActor::TriggerExit);
-	m_BoxTrigger->AttachTo(m_Parent);
+	m_BoxTrigger->SetupAttachment(m_Parent);
 
 	m_TurnAxis = CreateDefaultSubobject<UBoxComponent>(TEXT("TurnAxis"));
-	m_TurnAxis->AttachTo(m_Parent);
+	m_TurnAxis->SetupAttachment(m_Parent);
 
-	m_MyMesh->AttachTo(m_TurnAxis);
+	m_MyMesh->SetupAttachment(m_TurnAxis);
 }
 
 // Edit turn parameter here.
