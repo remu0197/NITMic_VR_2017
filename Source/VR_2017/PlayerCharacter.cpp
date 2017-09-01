@@ -32,8 +32,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 
 	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraArm"));
 	CameraArm->TargetArmLength = 0.0f;
-	CameraArm->RelativeLocation = FVector(0.0f, 0.0f, 40.0f);
-	CameraArm->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	CameraArm->RelativeLocation = FVector(0.0f, 0.0f, BaseEyeHeight);
+	CameraArm->SetupAttachment(RootComponent);//AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	//focas setting(need to 
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldMethod = EDepthOfFieldMethod::DOFM_BokehDOF;
@@ -51,30 +51,30 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldFarBlurSize = 5.72;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFarBlurSize = false;
 
-	FirstPersonCamera->AttachToComponent(CameraArm, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	FirstPersonCamera->SetupAttachment(CameraArm);
 
 	//Allow the pawn to control rotation
 	FirstPersonCamera->bUsePawnControlRotation = true;
 
-	m_cellphone = CreateDefaultSubobject<ACellphoneManager>(TEXT("Cellphone"));
-	m_cellphone->AttachToComponent(FirstPersonCamera, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	//m_cellphone = CreateDefaultSubobject<ACellphoneManager>(TEXT("Cellphone"));
+	//m_cellphone->SetupAtta//AttachToComponent(FirstPersonCamera, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	m_Flashlight = CreateDefaultSubobject<USpotLightComponent>(TEXT("Flashlight"));
-	m_Flashlight->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	m_Flashlight->SetupAttachment(RootComponent);
 
 	m_Flashlight->RelativeLocation = FVector(-50, 0, 0);
 
 	m_UnderBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnderBodyMesh"));
-	m_UnderBodyMesh->AttachToComponent(FirstPersonCamera, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	m_UnderBodyMesh->SetupAttachment(FirstPersonCamera);//AttachToComponent(FirstPersonCamera, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	m_TurnAxis = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TurnAxis"));
-	m_TurnAxis->AttachToComponent(m_UnderBodyMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	m_TurnAxis->SetupAttachment(m_UnderBodyMesh);//AttachToComponent(m_UnderBodyMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	m_TopBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TopBodyMesh"));
-	m_TopBodyMesh->AttachToComponent(m_TurnAxis, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	m_TopBodyMesh->SetupAttachment(m_TurnAxis);//AttachToComponent(m_TurnAxis, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	m_Screen = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Screen"));
-	m_Screen->AttachToComponent(m_TurnAxis, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	m_Screen->SetupAttachment(m_TurnAxis);//AttachToComponent(m_TurnAxis, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	//set step height
 	this->GetCharacterMovement()->MaxStepHeight = 10.0f;
@@ -262,6 +262,13 @@ void APlayerCharacter::OccurEvent()
 		{
 			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Can not Trace");
 		}
+	}
+	else
+	{
+		FScreenshotRequest SR = FScreenshotRequest();
+		FString savelocation = FPaths::ConvertRelativePathToFull(FPaths::GameDir());
+		FString filename = savelocation + FString(TEXT("/Saved/Screenshots/")) + "test" + FString(TEXT(".png"));
+		SR.RequestScreenshot(filename, true, false);
 	}
 }
 
