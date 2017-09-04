@@ -13,7 +13,8 @@ enum class ItemName
 	paper,
 	key,
 	clip,
-	chair
+	chair,
+	bank
 };
 
 UCLASS()
