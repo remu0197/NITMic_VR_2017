@@ -5,7 +5,11 @@
 #include "CellphoneManager.h"
 #include "PlayerCharacter.h"
 #include "UsableActor.h"
+#include "PasscordManager.h"
 
+//#ifndef VR_MODE_
+//#define VR_MODE_
+//#endif //VR_MODE_
 
 // Sets default values
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
@@ -164,9 +168,6 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	InputComponent->BindAxis("Turn", this, &APlayerCharacter::RightFlashlight/*AddControllerYawInput*/);
 	InputComponent->BindAxis("LookUp", this, &APlayerCharacter::UpFlashlight/*AddControllerPitchInput*/);
-
-	InputComponent->BindAxis("TurnDebug", this, &APlayerCharacter::AddControllerYawInput);
-	InputComponent->BindAxis("LookUpDebug", this, &APlayerCharacter::AddControllerPitchInput);
 
 	InputComponent->BindAction("OccurEvent", IE_Pressed, this, &APlayerCharacter::OccurEvent);
 
