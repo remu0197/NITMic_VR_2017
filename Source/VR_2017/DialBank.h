@@ -10,6 +10,7 @@
 /**
  * 
  */
+
 UCLASS()
 class VR_2017_API ADialBank : public AUsableActor
 {
@@ -30,4 +31,25 @@ public:
 
 private:
 	bool m_isOperateDial;
+
+	float m_currentDialNo;
+
+	float m_dialScaleValue;
+
+	float m_currentTurnCount;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* Dial;
+
+	UPROPERTY(EditAnywhere)
+		int DialTotalScaleCount;
+
+	/*UPROPERTY(EditAnywhere)
+		DialTurnDir PasscordFirstDir;*/
+
+	UPROPERTY(EditAnywhere)
+		TArray<int> PasscordTurnCount;
+
+	UPROPERTY(EditAnywhere)
+		TArray<int> PasscordNo;
 };

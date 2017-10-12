@@ -42,7 +42,4 @@ void PasscordManager::Init()
 			passCords.emplace_back(number, dir);
 		}
 	}
-
-	if(passCords.size() != 0)
-		GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, TEXT("ok"));
 }
