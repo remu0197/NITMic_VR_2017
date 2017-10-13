@@ -57,6 +57,9 @@ private:
 	UPROPERTY(EditAnywhere)
 		UPointLightComponent* m_Flashlight;
 
+	UPROPERTY(EditAnywhere)
+		TArray<USoundBase*> m_StepSounds;
+
 	const float heightOfCellphone = 65.0f;
 	const float distanceOfCellphone = -25.0f;
 
@@ -96,6 +99,17 @@ private:
 		float maxSquat;
 
 	float lightUpAxis, lightRightAxis;
+
+	bool m_isOperateBank;
+
+	void SetIsOperateBank();
+
+	class ADialBank2* m_currentOperateBank;
+
+	class AUsableActor* currentFocusActor = nullptr;
+
+	float m_multiInputValue;
+	float m_stepTime;
 
 /******Debug*******/
 private:

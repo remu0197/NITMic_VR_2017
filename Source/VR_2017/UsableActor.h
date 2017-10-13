@@ -43,6 +43,12 @@ protected:
 	UPROPERTY(EditAnywhere)
 		USoundBase* m_SoundEffect;
 
+	TArray<UMeshComponent*> Meshs;
+
+public:
+	void StartFocus();
+	void EndFocus();
+
 private:
 	UPROPERTY(EditAnywhere)
 		ItemName m_itemName;

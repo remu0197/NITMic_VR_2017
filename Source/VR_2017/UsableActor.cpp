@@ -13,13 +13,19 @@ AUsableActor::AUsableActor():
 	PrimaryActorTick.bCanEverTick = true;
 
 	m_MyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MyMesh"));
+
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned
 void AUsableActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	for (UActorComponent* Comp : GetComponentsByClass(UMeshComponent::StaticClass()))
+	{
+		UMeshComponent* Mesh = Cast<UMeshComponent>(Comp);
+		Meshs.Push(Mesh);
+	}
 }
 
 // Called every frame
@@ -57,8 +63,25 @@ ItemName AUsableActor::Event(const int innerProduct)
 	//SetActorEnableCollision(false);
 	//SetActorTickEnabled(false);
 
-	this->SetActorHiddenInGame(true);
+	//this->SetActorHiddenInGame(true);
 
 	return m_itemName;
+}
+
+void AUsableActor::StartFocus()
+{
+	for (UMeshComponent* Mesh : Meshs)
+	{
+		Mesh->SetRenderCustomDepth(true);
+		Mesh->CustomDepthStencilValue = 252;
+	}
+}
+
+void AUsableActor::EndFocus()
+{
+	for (UMeshComponent* Mesh : Meshs)
+	{
+		Mesh->SetRenderCustomDepth(false);
+	}
 }
 
