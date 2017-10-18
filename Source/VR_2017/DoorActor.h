@@ -23,16 +23,17 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual ItemName Event() override;
+	virtual ItemName Event(const int innerProduct) override;
 
-	UFUNCTION()
-		void TriggerEnter(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	//UFUNCTION()
+		//void TriggerEnter(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
 		void TriggerExit(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 private:
-	USceneComponent* m_Parent;
+	UPROPERTY(EditAnywhere)
+		USceneComponent* m_Parent;
 
 	UPROPERTY(EditAnywhere)
 		UShapeComponent* m_TurnAxis;
@@ -43,7 +44,6 @@ private:
 	static const float openSpeed;
 	static const float maxOpenAngle;
 
-	UPROPERTY(EditAnywhere)
 	bool m_isOpen;
 
 	void OpenDoor(float deltaTime);
@@ -51,4 +51,7 @@ private:
 	void CloseDoor(float deltaTime);
 
 	float doorAngle;
+
+	UPROPERTY(EditAnywhere)
+		float openDir;
 };

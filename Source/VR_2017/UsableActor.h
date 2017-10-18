@@ -12,7 +12,9 @@ enum class ItemName
 	book,
 	paper,
 	key,
-	clip
+	clip,
+	chair,
+	bank
 };
 
 UCLASS()
@@ -32,11 +34,20 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual ItemName Event();
+	virtual ItemName Event(const int innerProduct);
 
 protected:
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* m_MyMesh;
+
+	UPROPERTY(EditAnywhere)
+		USoundBase* m_SoundEffect;
+
+	TArray<UMeshComponent*> Meshs;
+
+public:
+	void StartFocus();
+	void EndFocus();
 
 private:
 	UPROPERTY(EditAnywhere)
