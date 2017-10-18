@@ -13,13 +13,13 @@ ACellphoneManager::ACellphoneManager() :
 	PrimaryActorTick.bCanEverTick = true;
 
 	m_UnderBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnderBodyMesh"));
-	m_UnderBodyMesh->AttachTo(GetRootComponent());
+	m_UnderBodyMesh->SetupAttachment(GetRootComponent());
 
 	m_TurnAxis = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TurnAxis"));
-	m_TurnAxis->AttachTo(m_UnderBodyMesh);
+	m_TurnAxis->SetupAttachment(m_UnderBodyMesh);
 
 	m_TopBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TopBodyMesh"));
-	m_TopBodyMesh->AttachTo(m_TurnAxis);
+	m_TopBodyMesh->SetupAttachment(m_TurnAxis);
 }
 
 const float ACellphoneManager::openSpeed = 90.0f;

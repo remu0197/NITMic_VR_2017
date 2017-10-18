@@ -14,18 +14,18 @@ ADoorActor::ADoorActor() :
 	PrimaryActorTick.bCanEverTick = true;
 
 	m_Parent = CreateDefaultSubobject<USceneComponent>(TEXT("Parent"));
-	m_Parent->AttachTo(GetRootComponent());
+	m_Parent->SetupAttachment(GetRootComponent());
 
 	m_BoxTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxTrigger"));
 	//m_BoxTrigger->bGenerateOverlapEvents = true;
 	//m_BoxTrigger->>OnComponentBeginOverlap.AddDynamic(this, &ADoorActor::TriggerEnter);
 	//m_BoxTrigger->OnComponentEndOverlap.AddDynamic(this, &ADoorActor::TriggerExit);
-	m_BoxTrigger->AttachTo(m_Parent);
+	m_BoxTrigger->SetupAttachment(m_Parent);
 
 	m_TurnAxis = CreateDefaultSubobject<UBoxComponent>(TEXT("TurnAxis"));
-	m_TurnAxis->AttachTo(m_Parent);
+	m_TurnAxis->SetupAttachment(m_Parent);
 
-	m_MyMesh->AttachTo(m_TurnAxis);
+	m_MyMesh->SetupAttachment(m_TurnAxis);
 }
 
 // Edit turn parameter here.
@@ -55,20 +55,22 @@ void ADoorActor::Tick(float DeltaTime)
 	*/
 }
 
-ItemName ADoorActor::Event()
+ItemName ADoorActor::Event(const int innerProduct)
 {
 	m_isOpen = true;
-	m_MyMesh->StaticMesh->StaticMaterials[0] = m_MyMesh->StaticMesh->StaticMaterials[2];
+
+	if (innerProduct > 0)
+		openDir = -1;
+	else
+		openDir = 1;
+
+	if (m_SoundEffect != NULL)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, m_SoundEffect, GetActorLocation());
+	}
+
 	return ItemName::noItem;
 }
-
-/*
-void ADoorActor::TriggerEnter(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	//m_isOpen = true;
-	//openDirection = 1.0f;
-}
-*/
 
 void ADoorActor::TriggerExit(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
