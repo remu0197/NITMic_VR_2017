@@ -6,6 +6,7 @@
 	{
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 		"VR_2017" : "UE4Editor-VR_2017-3770.dll"
 =======
 		"VR_2017" : "UE4Editor-VR_2017-7023.dll"
@@ -13,5 +14,8 @@
 =======
 		"VR_2017" : "UE4Editor-VR_2017-7023.dll"
 >>>>>>> parent of 8c03997... Revert "complete building hospital"
+=======
+		"VR_2017" : "UE4Editor-VR_2017-963.dll"
+>>>>>>> parent of e30604f... complete building hospital
 	}
 }
