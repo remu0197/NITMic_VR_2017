@@ -74,6 +74,9 @@ private:
 	UPROPERTY(EditAnywhere)
 		FVector cameraPos;
 
+	UPROPERTY(EditAnywhere)
+		FVector cameraPlusPos;
+
 	void ChangeDialNo(int additionValue, DialTurnDir changeDirValue);
 
 

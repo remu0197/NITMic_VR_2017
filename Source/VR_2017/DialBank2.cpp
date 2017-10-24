@@ -13,7 +13,9 @@ ADialBank2::ADialBank2():
 	m_currentDialNo(0),
 	m_currentTurnCount(0),
 	m_dialScaleValue(0.0f),
-	m_currentPassPhaseCount(0)
+	m_currentPassPhaseCount(0),
+	cameraPlusPos(0.0f, 0.0f, 0.0f),
+	cameraPos()
 {
 	DialComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Dial"));
 	DialComponent->SetupAttachment(m_MyMesh);
@@ -34,7 +36,7 @@ void ADialBank2::BeginPlay()
 	m_currentNextDir = PasscordFirstDir;
 
 	FVector loc = m_MyMesh->GetComponentLocation();
-	cameraPos = FVector(loc.X, loc.Y, loc.Z);
+	cameraPos = FVector(loc.X, loc.Y, loc.Z) + cameraPlusPos;
 }
 
 
