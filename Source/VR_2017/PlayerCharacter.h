@@ -111,6 +111,8 @@ private:
 	float m_multiInputValue;
 	float m_stepTime;
 
+	FVector defaultCameraPos;
+
 /******Debug*******/
 private:
 	static const float maxOpenAxis;

@@ -7,7 +7,9 @@
 #include "UsableActor.h"
 #include "DialBank2.h"
 #include "PasscordManager.h"
+#include "TimeManager.h"
 #include <random>
+#include <string>
 
 //#ifndef VR_MODE_
 //#define VR_MODE_
@@ -90,6 +92,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 
 	//set walkable angle
 	//this->GetCharacterMovement()->SetWalkableFloorAngle = 45.0f;
+
+	defaultCameraPos = FirstPersonCamera->GetRelativeTransform().GetLocation();
 }
 
 // Called when the game starts or when spawned
@@ -107,6 +111,8 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	TimeManager::AddPastTime(DeltaTime);
 
 	if (m_isOperateCellphone)
 	{
@@ -331,7 +337,12 @@ void APlayerCharacter::OccurEvent()
 			if (item == ItemName::bank)
 			{
 				ADialBank2* dial = dynamic_cast<ADialBank2*>(currentFocusActor);
-				if (dial)
+				if (m_isOperateBank)
+				{
+					FirstPersonCamera->SetRelativeLocation(defaultCameraPos);
+					m_isOperateBank = false;
+				}
+				else if (dial)
 				{
 					m_isOperateBank = true;
 					m_currentOperateBank = dial;
