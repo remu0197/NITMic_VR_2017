@@ -39,10 +39,29 @@ private:
 		UShapeComponent* m_TurnAxis;
 
 	UPROPERTY(EditAnywhere)
-		UShapeComponent* m_BoxTrigger;
+		UStaticMeshComponent* m_KeyholeFront;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* m_NobFrontParent;
+
+	UPROPERTY(EditAnywhere)
+		UStaticMeshComponent* m_DoorNobFront;
+
+	UPROPERTY(EditAnywhere)
+		UStaticMeshComponent* m_KeyholeBack;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* m_NobBackParent;
+
+	UPROPERTY(EditAnywhere)
+		UStaticMeshComponent* m_DoorNobBack;
+
+	/*UPROPERTY(EditAnywhere)
+		UShapeComponent* m_BoxTrigger;*/
 
 	static const float openSpeed;
 	static const float maxOpenAngle;
+	static const float maxNobAngle;
 
 	bool m_isOpen;
 
@@ -51,6 +70,7 @@ private:
 	void CloseDoor(float deltaTime);
 
 	float doorAngle;
+	float nobAngle;
 
 	UPROPERTY(EditAnywhere)
 		float openDir;
