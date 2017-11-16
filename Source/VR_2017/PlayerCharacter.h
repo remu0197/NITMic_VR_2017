@@ -122,6 +122,12 @@ private:
 
 	int cellphoneStep;
 
+	UPROPERTY(EditAnywhere)
+		USoundBase* m_shutterSound;
+
+	UPROPERTY(EditAnywhere)
+		AUsableActor* actor;
+
 
 /******Debug*******/
 private:

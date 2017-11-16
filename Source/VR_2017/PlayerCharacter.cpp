@@ -350,7 +350,7 @@ void APlayerCharacter::OccurEvent()
 			}
 		}
 	}
-	else if (!m_isOperateBank)
+	else
 	{
 		ItemName item;
 
@@ -394,14 +394,6 @@ void APlayerCharacter::OccurEvent()
 			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Can not Trace");
 		}
 	}
-	else
-	{
-		/*GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "bank");
-		FScreenshotRequest SR = FScreenshotRequest();
-		FString savelocation = FPaths::ConvertRelativePathToFull(FPaths::GameDir());
-		FString filename = savelocation + FString(TEXT("/Saved/Screenshots/")) + "test" + FString(TEXT(".png"));
-		SR.RequestScreenshot(filename, true, false);*/
-	}
 }
 
 AUsableActor* APlayerCharacter::GetUsableInView()
@@ -429,7 +421,15 @@ AUsableActor* APlayerCharacter::GetUsableInView()
 
 void APlayerCharacter::PickupItem(ItemName itemName)
 {
-	m_gotItemFlags |= (1 << static_cast<int>(itemName));
+	int item = static_cast<int>(itemName);
+	if ((m_gotItemFlags & (1 << item)) == 0) 
+	{
+		m_gotItemFlags |= (1 << static_cast<int>(itemName));
+		if (m_shutterSound != NULL)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, m_shutterSound, GetActorLocation());
+		}
+	}
 }
 
 void APlayerCharacter::LoseItem(ItemName itemName)
