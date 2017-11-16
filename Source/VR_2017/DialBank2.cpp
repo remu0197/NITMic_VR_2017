@@ -95,11 +95,19 @@ bool ADialBank2::OperateDial(float value)
 		{
 			m_isTurningDial = true;
 			m_currentTurnDir = DialTurnDir::Right;
+			if (m_SoundEffect != nullptr)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, m_SoundEffect, GetActorLocation());
+			}
 		}
 		else if (value < 0.0f)
 		{
 			m_isTurningDial = true;
 			m_currentTurnDir = DialTurnDir::Left;
+			if (m_SoundEffect != nullptr)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, m_SoundEffect, GetActorLocation());
+			}
 		}
 	}
 
