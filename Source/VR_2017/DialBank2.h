@@ -36,7 +36,7 @@ public:
 
 	virtual ItemName Event(const int innerProduct) override;
 
-	void OperateDial(float value);
+	bool OperateDial(float value);
 	
 	float m_value;
 
@@ -69,13 +69,26 @@ private:
 		TArray<int> PasscordNo;
 
 	UPROPERTY(EditAnywhere)
-		USceneComponent* DialComponent;
+		USceneComponent* Dial;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* Handle;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* Panel;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* m_HandleParent;
 
 	UPROPERTY(EditAnywhere)
 		FVector cameraPos;
 
 	UPROPERTY(EditAnywhere)
 		FVector cameraPlusPos;
+
+	bool m_isOpened;
+
+	float m_currentHandleAxis;
 
 	void ChangeDialNo(int additionValue, DialTurnDir changeDirValue);
 

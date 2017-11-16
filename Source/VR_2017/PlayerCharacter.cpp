@@ -2,7 +2,6 @@
 
 #include "VR_2017.h"
 #include "Engine.h"
-#include "CellphoneManager.h"
 #include "PlayerCharacter.h"
 #include "UsableActor.h"
 #include "DialBank2.h"
@@ -298,9 +297,10 @@ void APlayerCharacter::MoveRight(float value)
 	}
 	else if (m_isOperateBank)
 	{
-		if (m_currentOperateBank)
+		if (m_currentOperateBank && m_currentOperateBank->OperateDial(value))
 		{
-			m_currentOperateBank->OperateDial(value);
+			m_isOperateBank = false;
+			unlockedBankList.Add(m_currentOperateBank);
 		}
 	}
 	else
@@ -371,7 +371,7 @@ void APlayerCharacter::OccurEvent()
 					FirstPersonCamera->SetRelativeLocation(defaultCameraPos);
 					m_isOperateBank = false;
 				}
-				else if (dial)
+				else if (dial && unlockedBankList.Find(dial) == INDEX_NONE)
 				{
 					m_isOperateBank = true;
 					m_currentOperateBank = dial;

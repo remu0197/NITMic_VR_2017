@@ -14,11 +14,22 @@ ADialBank2::ADialBank2():
 	m_currentTurnCount(0),
 	m_dialScaleValue(0.0f),
 	m_currentPassPhaseCount(0),
-	cameraPlusPos(0.0f, 0.0f, 0.0f),
-	cameraPos()
+	cameraPlusPos(100.0f, 0.0f, -100.0f),
+	cameraPos(),
+	m_isOpened(false),
+	m_currentHandleAxis(0.0f)
 {
-	DialComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Dial"));
-	DialComponent->SetupAttachment(m_MyMesh);
+	m_HandleParent = CreateDefaultSubobject<USceneComponent>(TEXT("HandleParent"));
+	m_HandleParent->SetupAttachment(m_MyMesh);
+
+	Handle = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Handle"));
+	Handle->SetupAttachment(m_HandleParent);
+
+	Panel = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Panel"));
+	Panel->SetupAttachment(m_MyMesh);
+
+	Dial = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Dial"));
+	Dial->SetupAttachment(m_MyMesh);
 
 	int32 NoArray[] = { 10, 5, 8 };
 	PasscordNo.Append(NoArray, ARRAY_COUNT(NoArray));
@@ -42,26 +53,32 @@ void ADialBank2::BeginPlay()
 
 void ADialBank2::Tick(float DeltaTime)
 {
+	if (m_isOpened && m_currentHandleAxis >= -60.0f)
+	{
+		m_currentHandleAxis -= 1.0f;
+		m_HandleParent->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_currentHandleAxis)));
+	}
+
 	if (m_isTurningDial)
 	{
-		if (m_currentTurnDir == DialTurnDir::Left)
+		if (m_currentTurnDir == DialTurnDir::Right)
 		{
 			m_currentDialAxis += 1.0f;
 			if (m_currentDialAxis >= m_dialScaleValue * (m_currentDialNo + 1))
 			{
-				ChangeDialNo(1, DialTurnDir::Right);
+				ChangeDialNo(1, DialTurnDir::Left);
 			}
 		}
-		else if (m_currentTurnDir == DialTurnDir::Right)
+		else if (m_currentTurnDir == DialTurnDir::Left)
 		{
 			m_currentDialAxis -= 1.0f;
 			if (m_currentDialAxis <= m_dialScaleValue * (m_currentDialNo - 1))
 			{
-				ChangeDialNo(-1, DialTurnDir::Left);
+				ChangeDialNo(-1, DialTurnDir::Right);
 			}
 		}
 
-		DialComponent->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_currentDialAxis)));
+		Dial->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_currentDialAxis)));
 	}
 }
 
@@ -70,7 +87,7 @@ ItemName ADialBank2::Event(const int innerProduct)
 	return ItemName::bank;
 }
 
-void ADialBank2::OperateDial(float value)
+bool ADialBank2::OperateDial(float value)
 {
 	if (!m_isTurningDial)
 	{
@@ -85,6 +102,8 @@ void ADialBank2::OperateDial(float value)
 			m_currentTurnDir = DialTurnDir::Left;
 		}
 	}
+
+	return m_isOpened;
 }
 
 FVector ADialBank2::GetCameraPos()
@@ -116,11 +135,13 @@ void ADialBank2::ChangeDialNo(int additionValue, DialTurnDir changeDirValue)
 		++m_currentTurnCount;
 		if (m_currentTurnCount == PasscordTurnCount[m_currentPassPhaseCount])
 		{
+			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Step");
 			m_currentTurnCount = 0;
 			if (++m_currentPassPhaseCount == PasscordNo.Num())
 			{
 				GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Success");
 				m_currentPassPhaseCount = 0;
+				m_isOpened = true;
 			}
 			m_currentNextDir = changeDirValue;
 		}

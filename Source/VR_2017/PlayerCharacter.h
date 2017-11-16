@@ -128,6 +128,8 @@ private:
 	UPROPERTY(EditAnywhere)
 		AUsableActor* actor;
 
+	TArray<ADialBank2*> unlockedBankList;
+
 
 /******Debug*******/
 private:
