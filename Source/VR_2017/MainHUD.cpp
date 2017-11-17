@@ -6,7 +6,7 @@
 AMainHUD::AMainHUD()
 {
 	// Set the crosshair texture
-	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshiarTexObj(TEXT("/Game/UI/crosshair"));
+	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshiarTexObj(TEXT("/Game/Textures/crosshair"));
 	CrosshairTex = CrosshiarTexObj.Object;
 }
 
