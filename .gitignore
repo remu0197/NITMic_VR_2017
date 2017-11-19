@@ -1,4 +1,4 @@
-.vs/VR_2017/v14/.suo
+﻿.vs/VR_2017/v14/.suo
 Intermediate
 Saved
 VR_2017.VC.db
@@ -17,3 +17,6 @@ Config/DefaultEditor.ini
 Content/Levels/Game_Main_BuiltData.uasset
 謎解き　メモ.txt
 Content/Levels/Game_Main_BuiltData.uasset
+Binaries
+Build
+
