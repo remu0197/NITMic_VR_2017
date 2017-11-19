@@ -7,7 +7,9 @@
 #include "UsableActor.h"
 #include "DialBank2.h"
 #include "PasscordManager.h"
+#include "TimeManager.h"
 #include <random>
+#include <string>
 
 //#ifndef VR_MODE_
 //#define VR_MODE_
@@ -90,6 +92,13 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 
 	//set walkable angle
 	//this->GetCharacterMovement()->SetWalkableFloorAngle = 45.0f;
+
+	defaultCameraPos = FirstPersonCamera->GetRelativeTransform().GetLocation();
+
+	parameters.Add("isCenter");
+	parameters.Add("isRight");
+	parameters.Add("isOne");
+	parameters.Add("isTwo");
 }
 
 // Called when the game starts or when spawned
@@ -101,6 +110,18 @@ void APlayerCharacter::BeginPlay()
 	m_TurnAxis->SetHiddenInGame(true);
 	m_TopBodyMesh->SetHiddenInGame(true);
 	m_Screen->SetHiddenInGame(true);
+
+	/*
+	if (screenTextures.Num() != 0)
+	{
+		GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, TEXT("dynamic"));
+
+		screenMaterial = UMaterialInstanceDynamic::Create(m_Screen->GetMaterial(0), this);
+		screenMaterial->SetTextureParameterValue("screen", screenTextures[0]);
+
+		m_Screen->SetMaterial(0, screenMaterial);
+	}
+	*/
 }
 
 // Called every frame
@@ -108,9 +129,11 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	TimeManager::AddPastTime(DeltaTime);
+
 	if (m_isOperateCellphone)
 	{
-		if (m_openAxis > 0.0f)
+		if (m_openAxis > 20.0f)
 		{
 			m_openAxis -= openSpeed * DeltaTime;
 			m_TurnAxis->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_openAxis)));
@@ -126,7 +149,8 @@ void APlayerCharacter::Tick(float DeltaTime)
 				if (ScreenInstance != nullptr)
 				{
 					//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, TEXT("close"));
-					ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 1.0f);
+					char str[] = "";
+					ScreenInstance->SetScalarParameterValue(FName(str), 1.0f);
 				}
 			}
 		}
@@ -212,7 +236,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	m_multiInputValue = 0.0f;
 }
 
-const float APlayerCharacter::maxOpenAxis = 160.0f;
+const float APlayerCharacter::maxOpenAxis = 180.0f;
 const float APlayerCharacter::openSpeed = 180.0f;
 
 // Called to bind functionality to input
@@ -255,20 +279,20 @@ void APlayerCharacter::MoveRight(float value)
 {
 	if(m_isOperateCellphone)
 	{
-		if (value < 0)
+		if (value < 0 && (cellphoneStep == 2 || cellphoneStep == 4))
 		{
 			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
 			if (ScreenInstance != nullptr)
 			{
-				ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 0.0f);
+				ScreenInstance->SetScalarParameterValue(FName(parameters[--cellphoneStep]), 0.0f);
 			}
 		}
-		else if (value > 0)
+		else if (value > 0 && (cellphoneStep == 1 || cellphoneStep == 3))
 		{
 			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
 			if (ScreenInstance != nullptr)
 			{
-				ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 1.0f);
+				ScreenInstance->SetScalarParameterValue(FName(parameters[cellphoneStep++]), 1.0f);
 			}
 		}
 	}
@@ -315,7 +339,18 @@ void APlayerCharacter::RightFlashlight(float value)
 
 void APlayerCharacter::OccurEvent()
 {
-	if (!(m_isOperateCellphone && m_isOperateBank))
+	if (m_isOperateCellphone)
+	{
+		if (cellphoneStep == 0 || cellphoneStep == 2)
+		{
+			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
+			if (ScreenInstance != nullptr)
+			{
+				ScreenInstance->SetScalarParameterValue(FName(parameters[cellphoneStep++]), 1.0f);
+			}
+		}
+	}
+	else if (!m_isOperateBank)
 	{
 		ItemName item;
 
@@ -331,7 +366,12 @@ void APlayerCharacter::OccurEvent()
 			if (item == ItemName::bank)
 			{
 				ADialBank2* dial = dynamic_cast<ADialBank2*>(currentFocusActor);
-				if (dial)
+				if (m_isOperateBank)
+				{
+					FirstPersonCamera->SetRelativeLocation(defaultCameraPos);
+					m_isOperateBank = false;
+				}
+				else if (dial)
 				{
 					m_isOperateBank = true;
 					m_currentOperateBank = dial;

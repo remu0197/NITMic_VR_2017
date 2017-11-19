@@ -111,6 +111,18 @@ private:
 	float m_multiInputValue;
 	float m_stepTime;
 
+	FVector defaultCameraPos;
+
+	UMaterialInstanceDynamic* screenMaterial;
+
+	UPROPERTY(EditAnywhere)
+		TArray<UTexture*> screenTextures;
+
+	TArray<char*> parameters;
+
+	int cellphoneStep;
+
+
 /******Debug*******/
 private:
 	static const float maxOpenAxis;
