@@ -122,6 +122,26 @@ private:
 
 	int cellphoneStep;
 
+	UPROPERTY(EditAnywhere)
+		USoundBase* m_shutterSound;
+
+	UPROPERTY(EditAnywhere)
+		AUsableActor* actor;
+
+	TArray<ADialBank2*> unlockedBankList;
+
+	const float DoF_FocalDistance = 50.0f;
+	const float DoF_FarTransitionRegion = 1600.0f;
+	const float DoF_FieldScale = 0.44f;
+	const float DoF_NearBlurSize = 4.16f;
+	const float DoF_FarBlurSize = 5.72;
+
+	UPROPERTY(EditAnywhere)
+		USoundBase* m_operateSound;
+
+	UPROPERTY(EditAnywhere)
+		USoundBase* m_decideSound;
+
 
 /******Debug*******/
 private:
@@ -133,6 +153,8 @@ private:
 
 	UPROPERTY(EditAnywhere)
 		float RastAmount;
+
+	void SetDofField(float value);
 
 	//class ACellphoneManager* m_cellphone;
 };

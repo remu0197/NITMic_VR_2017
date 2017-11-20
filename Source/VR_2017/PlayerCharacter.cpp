@@ -2,11 +2,9 @@
 
 #include "VR_2017.h"
 #include "Engine.h"
-#include "CellphoneManager.h"
 #include "PlayerCharacter.h"
 #include "UsableActor.h"
 #include "DialBank2.h"
-#include "PasscordManager.h"
 #include "TimeManager.h"
 #include <random>
 #include <string>
@@ -36,6 +34,9 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 {
 	m_capsuleRadius = originalCapsuleRadius;
 
+	UCapsuleComponent *capsule = GetCapsuleComponent();
+	capsule->SetCapsuleRadius(170.0f);
+
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -49,18 +50,18 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	//focas setting(need to 
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldMethod = EDepthOfFieldMethod::DOFM_BokehDOF;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldMethod = false;
-	FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance = 50.0f;
+	FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance = 0.0f;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFocalDistance = false;
+	FirstPersonCamera->PostProcessSettings.DepthOfFieldFarTransitionRegion = 0.0f;
+	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFarTransitionRegion = false;
+	FirstPersonCamera->PostProcessSettings.DepthOfFieldScale = 0.0f;
+	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldScale = false;
+	FirstPersonCamera->PostProcessSettings.DepthOfFieldNearBlurSize = 0.0f;
+	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldNearBlurSize = false;
+	FirstPersonCamera->PostProcessSettings.DepthOfFieldFarBlurSize = 0.0f;
+	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFarBlurSize = false;
 	FirstPersonCamera->PostProcessSettings.DepthOfFieldNearTransitionRegion = 0.0f;
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldNearTransitionRegion = false;
-	FirstPersonCamera->PostProcessSettings.DepthOfFieldFarTransitionRegion = 1600.0f;
-	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFarTransitionRegion = false;
-	FirstPersonCamera->PostProcessSettings.DepthOfFieldScale = 0.44f;
-	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldScale = false;
-	FirstPersonCamera->PostProcessSettings.DepthOfFieldNearBlurSize = 4.16f;
-	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldNearBlurSize = false;
-	FirstPersonCamera->PostProcessSettings.DepthOfFieldFarBlurSize = 5.72;
-	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldFarBlurSize = false;
 
 	FirstPersonCamera->SetupAttachment(CameraArm);
 
@@ -167,6 +168,8 @@ void APlayerCharacter::Tick(float DeltaTime)
 			this->GetCharacterMovement()->AddInputVector(FVector(0.f, correctDistance * m_correctDirectionY, 0.f));
 			//= FVector(correctDistance * m_correctDirectionX, correctDistance * m_correctDirectionY, 0);
 		}
+
+		SetDofField(0.001f);
 	}
 	else
 	{
@@ -286,6 +289,8 @@ void APlayerCharacter::MoveRight(float value)
 			{
 				ScreenInstance->SetScalarParameterValue(FName(parameters[--cellphoneStep]), 0.0f);
 			}
+			if(m_operateSound != nullptr)
+				UGameplayStatics::PlaySoundAtLocation(this, m_operateSound, GetActorLocation());
 		}
 		else if (value > 0 && (cellphoneStep == 1 || cellphoneStep == 3))
 		{
@@ -294,13 +299,16 @@ void APlayerCharacter::MoveRight(float value)
 			{
 				ScreenInstance->SetScalarParameterValue(FName(parameters[cellphoneStep++]), 1.0f);
 			}
+			if (m_operateSound != nullptr)
+				UGameplayStatics::PlaySoundAtLocation(this, m_operateSound, GetActorLocation());
 		}
 	}
 	else if (m_isOperateBank)
 	{
-		if (m_currentOperateBank)
+		if (m_currentOperateBank && m_currentOperateBank->OperateDial(value))
 		{
-			m_currentOperateBank->OperateDial(value);
+			m_isOperateBank = false;
+			unlockedBankList.Add(m_currentOperateBank);
 		}
 	}
 	else
@@ -348,9 +356,12 @@ void APlayerCharacter::OccurEvent()
 			{
 				ScreenInstance->SetScalarParameterValue(FName(parameters[cellphoneStep++]), 1.0f);
 			}
+
+			if(m_decideSound != nullptr)
+				UGameplayStatics::PlaySoundAtLocation(this, m_decideSound, GetActorLocation());
 		}
 	}
-	else if (!m_isOperateBank)
+	else
 	{
 		ItemName item;
 
@@ -371,7 +382,7 @@ void APlayerCharacter::OccurEvent()
 					FirstPersonCamera->SetRelativeLocation(defaultCameraPos);
 					m_isOperateBank = false;
 				}
-				else if (dial)
+				else if (dial && unlockedBankList.Find(dial) == INDEX_NONE)
 				{
 					m_isOperateBank = true;
 					m_currentOperateBank = dial;
@@ -393,14 +404,6 @@ void APlayerCharacter::OccurEvent()
 		{
 			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Can not Trace");
 		}
-	}
-	else
-	{
-		/*GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "bank");
-		FScreenshotRequest SR = FScreenshotRequest();
-		FString savelocation = FPaths::ConvertRelativePathToFull(FPaths::GameDir());
-		FString filename = savelocation + FString(TEXT("/Saved/Screenshots/")) + "test" + FString(TEXT(".png"));
-		SR.RequestScreenshot(filename, true, false);*/
 	}
 }
 
@@ -429,7 +432,15 @@ AUsableActor* APlayerCharacter::GetUsableInView()
 
 void APlayerCharacter::PickupItem(ItemName itemName)
 {
-	m_gotItemFlags |= (1 << static_cast<int>(itemName));
+	int item = static_cast<int>(itemName);
+	if ((m_gotItemFlags & (1 << item)) == 0) 
+	{
+		m_gotItemFlags |= (1 << static_cast<int>(itemName));
+		if (m_shutterSound != NULL)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, m_shutterSound, GetActorLocation());
+		}
+	}
 }
 
 void APlayerCharacter::LoseItem(ItemName itemName)
@@ -467,6 +478,8 @@ void APlayerCharacter::SetIsOperateCellphone()
 		m_capsuleRadius = originalCapsuleRadius;
 		UCapsuleComponent* capsule = GetCapsuleComponent();
 		capsule->SetCapsuleRadius(m_capsuleRadius);
+
+		SetDofField(0.0f);
 	}
 }
 
@@ -504,5 +517,30 @@ void APlayerCharacter::Squat(float deltaTime)
 			cameraHeight += squatSpeed * deltaTime;
 			CameraArm->SetRelativeLocation(FVector(0.0f, 0.0f, cameraHeight));
 		}
+	}
+}
+
+void APlayerCharacter::SetDofField(float value)
+{
+	if (value <= 0.0f)
+	{
+		FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance = 0.0f;
+		FirstPersonCamera->PostProcessSettings.DepthOfFieldFarTransitionRegion = 0.0f;
+		FirstPersonCamera->PostProcessSettings.DepthOfFieldScale = 0.0f;
+		FirstPersonCamera->PostProcessSettings.DepthOfFieldNearBlurSize = 0.0f;
+		FirstPersonCamera->PostProcessSettings.DepthOfFieldFarBlurSize = 0.0f;
+	}
+	else
+	{
+		if(FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance <= DoF_FocalDistance)
+			FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance = DoF_FocalDistance;
+		if(FirstPersonCamera->PostProcessSettings.DepthOfFieldFarTransitionRegion < DoF_FarTransitionRegion)
+			FirstPersonCamera->PostProcessSettings.DepthOfFieldFarTransitionRegion += value * 10000.0f;
+		if(FirstPersonCamera->PostProcessSettings.DepthOfFieldScale < DoF_FieldScale)
+			FirstPersonCamera->PostProcessSettings.DepthOfFieldScale += value;
+		if(FirstPersonCamera->PostProcessSettings.DepthOfFieldNearBlurSize < DoF_NearBlurSize)
+			FirstPersonCamera->PostProcessSettings.DepthOfFieldNearBlurSize += value;
+		if(FirstPersonCamera->PostProcessSettings.DepthOfFieldFarBlurSize < DoF_FarBlurSize)
+			FirstPersonCamera->PostProcessSettings.DepthOfFieldFarBlurSize += value;
 	}
 }

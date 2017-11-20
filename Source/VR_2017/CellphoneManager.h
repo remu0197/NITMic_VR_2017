@@ -2,16 +2,17 @@
 
 #pragma once
 
-#include "GameFramework/Pawn.h"
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
 #include "CellphoneManager.generated.h"
 
 UCLASS()
-class VR_2017_API ACellphoneManager : public APawn
+class VR_2017_API ACellphoneManager : public AActor
 {
 	GENERATED_BODY()
-
-public:
-	// Sets default values for this pawn's properties
+	
+public:	
+	// Sets default values for this actor's properties
 	ACellphoneManager();
 
 protected:
@@ -22,32 +23,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent);
-
-	void SetIsOpening()
-	{
-		m_isOpening = true;
-		GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Black, "Cellphone Open!");
-	}
-	
 private:
 	UPROPERTY(EditAnywhere)
-		UStaticMeshComponent* m_TurnAxis;
+		UMeshComponent* underBody;
 
 	UPROPERTY(EditAnywhere)
-		UStaticMeshComponent* m_TopBodyMesh;
-
-	UPROPERTY(EditAnywhere)
-		UStaticMeshComponent* m_UnderBodyMesh;
-
-	static const float openSpeed;
-	static const float maxOpenAngle;
-
-	float m_openAngle;
-
-	bool m_isOpening, m_isClosing;
+		UMeshComponent* topBody;
 	
-	void OpenCellphone(float deltaTime);
-
-
 };
