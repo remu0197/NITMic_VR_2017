@@ -55,7 +55,7 @@ private:
 
 	DialTurnDir m_currentTurnDir;
 
-	const int DialTotalScaleCount = 12;
+	const int DialTotalScaleCount = 26;
 
 	DialTurnDir m_currentNextDir;
 
@@ -79,6 +79,27 @@ private:
 
 	UPROPERTY(EditAnywhere)
 		USceneComponent* m_HandleParent;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* cube;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* cube1;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* cube2;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* cube4;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* cube5;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* cube6;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* cube7;
 
 	UPROPERTY(EditAnywhere)
 		FVector cameraPos;

@@ -19,6 +19,27 @@ ADialBank2::ADialBank2():
 	m_isOpened(false),
 	m_currentHandleAxis(0.0f)
 {
+	cube = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube"));
+	cube->SetupAttachment(m_MyMesh);
+
+	cube1 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube1"));
+	cube1->SetupAttachment(m_MyMesh);
+
+	cube2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube2"));
+	cube2->SetupAttachment(m_MyMesh);
+
+	cube4 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube4"));
+	cube4->SetupAttachment(m_MyMesh);
+
+	cube5 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube5"));
+	cube5->SetupAttachment(m_MyMesh);
+
+	cube6 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube6"));
+	cube6->SetupAttachment(m_MyMesh);
+
+	cube7 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube7"));
+	cube7->SetupAttachment(m_MyMesh);
+
 	m_HandleParent = CreateDefaultSubobject<USceneComponent>(TEXT("HandleParent"));
 	m_HandleParent->SetupAttachment(m_MyMesh);
 
@@ -46,7 +67,7 @@ void ADialBank2::BeginPlay()
 
 	m_currentNextDir = PasscordFirstDir;
 
-	FVector loc = m_MyMesh->GetComponentLocation();
+	FVector loc = Dial->GetComponentLocation();
 	cameraPos = FVector(loc.X, loc.Y, loc.Z) + cameraPlusPos;
 }
 
@@ -55,7 +76,7 @@ void ADialBank2::Tick(float DeltaTime)
 {
 	if (m_isOpened && m_currentHandleAxis >= -60.0f)
 	{
-		m_currentHandleAxis -= 1.0f;
+		m_currentHandleAxis -=  1.0f;
 		m_HandleParent->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_currentHandleAxis)));
 	}
 
@@ -63,7 +84,7 @@ void ADialBank2::Tick(float DeltaTime)
 	{
 		if (m_currentTurnDir == DialTurnDir::Right)
 		{
-			m_currentDialAxis += 1.0f;
+			m_currentDialAxis += m_dialScaleValue / 30.0f;
 			if (m_currentDialAxis >= m_dialScaleValue * (m_currentDialNo + 1))
 			{
 				ChangeDialNo(1, DialTurnDir::Left);
@@ -71,14 +92,14 @@ void ADialBank2::Tick(float DeltaTime)
 		}
 		else if (m_currentTurnDir == DialTurnDir::Left)
 		{
-			m_currentDialAxis -= 1.0f;
+			m_currentDialAxis -= m_dialScaleValue / 30.0f;
 			if (m_currentDialAxis <= m_dialScaleValue * (m_currentDialNo - 1))
 			{
 				ChangeDialNo(-1, DialTurnDir::Right);
 			}
 		}
 
-		Dial->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_currentDialAxis)));
+		Dial->SetRelativeRotation(FQuat(FRotator(0.0f, 180.0f, m_currentDialAxis)));
 	}
 }
 
