@@ -102,6 +102,21 @@ private:
 		USceneComponent* cube7;
 
 	UPROPERTY(EditAnywhere)
+		USceneComponent* MetalFitting1;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* MetalFitting2;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* DialHolder;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* Door;
+
+	UPROPERTY(EditAnywhere)
+		USceneComponent* DoorParent;
+
+	UPROPERTY(EditAnywhere)
 		FVector cameraPos;
 
 	UPROPERTY(EditAnywhere)
@@ -109,7 +124,7 @@ private:
 
 	bool m_isOpened;
 
-	float m_currentHandleAxis;
+	float m_currentHandleAxis, m_currentDoorAxis;
 
 	void ChangeDialNo(int additionValue, DialTurnDir changeDirValue);
 

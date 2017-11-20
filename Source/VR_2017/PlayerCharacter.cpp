@@ -30,7 +30,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	m_correctDirectionY(0),
 	m_isOperateBank(false),
 	m_multiInputValue(0.0f),
-	m_stepTime(0.0f)
+	m_stepTime(0.0f),
+	dir(0.0f)
 {
 	m_capsuleRadius = originalCapsuleRadius;
 
@@ -309,6 +310,9 @@ void APlayerCharacter::MoveRight(float value)
 		{
 			m_isOperateBank = false;
 			unlockedBankList.Add(m_currentOperateBank);
+			FirstPersonCamera->SetRelativeLocation(defaultCameraPos);
+			FVector pos = GetCapsuleComponent()->GetComponentLocation();
+			GetCapsuleComponent()->SetWorldLocation(FVector(pos.X + (originalCapsuleRadius + 20.0f)*(dir / dir), pos.Y, pos.Z));
 		}
 	}
 	else
@@ -371,7 +375,7 @@ void APlayerCharacter::OccurEvent()
 			FVector temp = currentFocusActor->GetTransform().GetUnitAxis(EAxis::X);
 			FVector temp2 = currentFocusActor->GetActorLocation();
 			temp2 = this->GetActorLocation() - temp2;
-			float dir = FVector::DotProduct(temp, temp2);
+			dir = FVector::DotProduct(temp, temp2);
 
 			item = currentFocusActor->Event(dir);
 			if (item == ItemName::bank)
@@ -380,12 +384,17 @@ void APlayerCharacter::OccurEvent()
 				if (m_isOperateBank)
 				{
 					FirstPersonCamera->SetRelativeLocation(defaultCameraPos);
+					FVector pos = GetCapsuleComponent()->GetComponentLocation();
+					GetCapsuleComponent()->SetWorldLocation(FVector(pos.X + (originalCapsuleRadius + 20.0f)*(dir / dir), pos.Y , pos.Z));
+
 					m_isOperateBank = false;
 				}
 				else if (dial && unlockedBankList.Find(dial) == INDEX_NONE)
 				{
 					m_isOperateBank = true;
 					m_currentOperateBank = dial;
+					m_isSquat = false;
+					CameraArm->SetRelativeLocation(FVector(0.0f, 0.0f, BaseEyeHeight));
 					FVector pos = dial->GetCameraPos();
 					float posZ = GetCapsuleComponent()->GetComponentLocation().Z;
 
@@ -486,7 +495,8 @@ void APlayerCharacter::SetIsOperateCellphone()
 void APlayerCharacter::SetIsSquat()
 {
 	//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, TEXT("close"));
-	m_isSquat = !m_isSquat;
+	if(!m_isOperateBank)
+		m_isSquat = !m_isSquat;
 }
 
 void APlayerCharacter::SetIsOperateBank()

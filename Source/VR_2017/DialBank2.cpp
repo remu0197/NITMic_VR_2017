@@ -17,7 +17,8 @@ ADialBank2::ADialBank2():
 	cameraPlusPos(100.0f, 0.0f, -100.0f),
 	cameraPos(),
 	m_isOpened(false),
-	m_currentHandleAxis(0.0f)
+	m_currentHandleAxis(0.0f),
+	m_currentDoorAxis(0.0f)
 {
 	cube = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube"));
 	cube->SetupAttachment(m_MyMesh);
@@ -40,17 +41,32 @@ ADialBank2::ADialBank2():
 	cube7 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube7"));
 	cube7->SetupAttachment(m_MyMesh);
 
+	MetalFitting1 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("metalFitting1"));
+	MetalFitting1->SetupAttachment(m_MyMesh);
+
+	MetalFitting2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("metalFitting2"));
+	MetalFitting2->SetupAttachment(m_MyMesh);
+
+	DialHolder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DialHolder"));
+	DialHolder->SetupAttachment(Door);
+
+	DoorParent = CreateDefaultSubobject<USceneComponent>(TEXT("DoorParent"));
+	DoorParent->SetupAttachment(m_MyMesh);
+
+	Door = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door"));
+	Door->SetupAttachment(DoorParent);
+
 	m_HandleParent = CreateDefaultSubobject<USceneComponent>(TEXT("HandleParent"));
-	m_HandleParent->SetupAttachment(m_MyMesh);
+	m_HandleParent->SetupAttachment(Door);
 
 	Handle = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Handle"));
 	Handle->SetupAttachment(m_HandleParent);
 
 	Panel = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Panel"));
-	Panel->SetupAttachment(m_MyMesh);
+	Panel->SetupAttachment(Door);
 
 	Dial = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Dial"));
-	Dial->SetupAttachment(m_MyMesh);
+	Dial->SetupAttachment(Door);
 
 	int32 NoArray[] = { 10, 5, 8 };
 	PasscordNo.Append(NoArray, ARRAY_COUNT(NoArray));
@@ -74,10 +90,18 @@ void ADialBank2::BeginPlay()
 
 void ADialBank2::Tick(float DeltaTime)
 {
-	if (m_isOpened && m_currentHandleAxis >= -60.0f)
+	if (m_isOpened)
 	{
-		m_currentHandleAxis -=  1.0f;
-		m_HandleParent->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_currentHandleAxis)));
+		if (m_currentHandleAxis >= -60.0f)
+		{
+			m_currentHandleAxis -= 1.0f;
+			m_HandleParent->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_currentHandleAxis)));
+		}
+		else if (m_currentDoorAxis >= -120.0f)
+		{
+			m_currentDoorAxis -= 1.0f;
+			DoorParent->SetRelativeRotation(FQuat(FRotator(0.0f, m_currentDoorAxis, 0.0f)));
+		}
 	}
 
 	if (m_isTurningDial)
@@ -99,7 +123,7 @@ void ADialBank2::Tick(float DeltaTime)
 			}
 		}
 
-		Dial->SetRelativeRotation(FQuat(FRotator(0.0f, 180.0f, m_currentDialAxis)));
+		Dial->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_currentDialAxis)));
 	}
 }
 
