@@ -142,6 +142,8 @@ private:
 	UPROPERTY(EditAnywhere)
 		USoundBase* m_decideSound;
 
+	float dir;
+
 
 /******Debug*******/
 private:
