@@ -35,6 +35,7 @@ public:
 	void RightFlashlight(float value);
 
 	void OccurEvent();
+	void CancelEvent();
 
 	class AUsableActor* GetUsableInView();
 
@@ -143,6 +144,59 @@ private:
 		USoundBase* m_decideSound;
 
 	float dir;
+
+	char* _currentStatusName;
+
+	class SceneNode
+	{
+	public:
+		SceneNode(char* statusName);
+		void SetRelationNode(TSharedPtr<SceneNode> back, TSharedPtr<SceneNode> next);
+		TSharedPtr<SceneNode> GetBackNode();
+		virtual TSharedPtr<SceneNode> GetNextNode();
+		virtual char* GetStatusName();
+
+		virtual char* MoveUp(float value)
+		{
+			return nullptr;
+		}
+
+		virtual char* MoveRight(float value)
+		{
+			return nullptr;
+		}
+
+	private:
+		char* _statusName;
+
+	protected:
+		TSharedPtr<SceneNode> _backNode;
+		TSharedPtr<SceneNode> _nextNode;
+	};
+
+	class MenuNode : public SceneNode
+	{
+	public:
+		MenuNode(int len, int row, int defaulPos);
+
+		virtual TSharedPtr<SceneNode> GetNextNode();
+
+		void AppendNode(TSharedPtr<SceneNode> node);
+
+		virtual char* GetStatusName() override;
+
+		virtual char* MoveUp(float value) override;
+		virtual char* MoveRight(float value) override;
+
+	private:
+		const int MAX_LEN_COUNT, MAX_ROW_COUNT, DEFAULT_POS;
+		int _currentLenCount, _currentRowCount;
+
+		TArray<TSharedPtr<SceneNode>> contentNodes;
+	};
+
+	TArray<TSharedPtr<SceneNode>> cellphoneNodes;
+	TSharedPtr<SceneNode> _currentSceneNode;
 
 
 /******Debug*******/
