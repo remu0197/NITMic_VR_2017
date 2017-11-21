@@ -20,36 +20,6 @@ ADialBank2::ADialBank2():
 	m_currentHandleAxis(0.0f),
 	m_currentDoorAxis(0.0f)
 {
-	cube = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube"));
-	cube->SetupAttachment(m_MyMesh);
-
-	cube1 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube1"));
-	cube1->SetupAttachment(m_MyMesh);
-
-	cube2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube2"));
-	cube2->SetupAttachment(m_MyMesh);
-
-	cube4 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube4"));
-	cube4->SetupAttachment(m_MyMesh);
-
-	cube5 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube5"));
-	cube5->SetupAttachment(m_MyMesh);
-
-	cube6 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube6"));
-	cube6->SetupAttachment(m_MyMesh);
-
-	cube7 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Cube7"));
-	cube7->SetupAttachment(m_MyMesh);
-
-	MetalFitting1 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("metalFitting1"));
-	MetalFitting1->SetupAttachment(m_MyMesh);
-
-	MetalFitting2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("metalFitting2"));
-	MetalFitting2->SetupAttachment(m_MyMesh);
-
-	DialHolder = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DialHolder"));
-	DialHolder->SetupAttachment(Door);
-
 	DoorParent = CreateDefaultSubobject<USceneComponent>(TEXT("DoorParent"));
 	DoorParent->SetupAttachment(m_MyMesh);
 
@@ -61,9 +31,6 @@ ADialBank2::ADialBank2():
 
 	Handle = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Handle"));
 	Handle->SetupAttachment(m_HandleParent);
-
-	Panel = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Panel"));
-	Panel->SetupAttachment(Door);
 
 	Dial = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Dial"));
 	Dial->SetupAttachment(Door);

@@ -75,40 +75,7 @@ private:
 		USceneComponent* Handle;
 
 	UPROPERTY(EditAnywhere)
-		USceneComponent* Panel;
-
-	UPROPERTY(EditAnywhere)
 		USceneComponent* m_HandleParent;
-
-	UPROPERTY(EditAnywhere)
-		USceneComponent* cube;
-
-	UPROPERTY(EditAnywhere)
-		USceneComponent* cube1;
-
-	UPROPERTY(EditAnywhere)
-		USceneComponent* cube2;
-
-	UPROPERTY(EditAnywhere)
-		USceneComponent* cube4;
-
-	UPROPERTY(EditAnywhere)
-		USceneComponent* cube5;
-
-	UPROPERTY(EditAnywhere)
-		USceneComponent* cube6;
-
-	UPROPERTY(EditAnywhere)
-		USceneComponent* cube7;
-
-	UPROPERTY(EditAnywhere)
-		USceneComponent* MetalFitting1;
-
-	UPROPERTY(EditAnywhere)
-		USceneComponent* MetalFitting2;
-
-	UPROPERTY(EditAnywhere)
-		USceneComponent* DialHolder;
 
 	UPROPERTY(EditAnywhere)
 		USceneComponent* Door;
