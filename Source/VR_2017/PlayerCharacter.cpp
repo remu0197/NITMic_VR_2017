@@ -490,6 +490,11 @@ void APlayerCharacter::SetIsOperateCellphone()
 
 		SetDofField(0.0f);
 	}
+	else if(currentFocusActor != nullptr)
+	{
+		currentFocusActor->EndFocus();
+		currentFocusActor = nullptr;
+	}
 }
 
 void APlayerCharacter::SetIsSquat()
