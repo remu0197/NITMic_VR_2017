@@ -8,13 +8,13 @@
 UENUM()
 enum class ItemName
 {
-	noItem,
 	book,
 	paper,
 	key,
 	clip,
-	chair,
-	bank
+	noItem,
+	bank,
+	door,
 };
 
 UCLASS()
@@ -35,6 +35,16 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual ItemName Event(const int innerProduct);
+
+	ItemName GetItemName()
+	{
+		if(m_itemName != ItemName::bank && m_itemName != ItemName::door)
+			return m_itemName;
+
+		return ItemName::noItem;
+	}
+
+	FName GetItemFName();
 
 protected:
 	UPROPERTY(EditAnywhere)

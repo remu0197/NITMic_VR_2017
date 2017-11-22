@@ -35,36 +35,20 @@ void AUsableActor::Tick(float DeltaTime)
 
 }
 
-ItemName AUsableActor::Event(const int innerProduct)
+FName AUsableActor::GetItemFName()
 {
-	/****************** For Debug ***************************************/
-
-	std::unordered_map<ItemName, FString> myMap{
-		{ItemName::book, "book"},
-		{ItemName::key, "key"},
-		{ItemName::paper, "paper"},
-		{ItemName::clip, "clip"},
-		{ItemName::chair, "chair"}
+	std::unordered_map<ItemName, FName> myMap{
+		{ ItemName::book, "book" },
+		{ ItemName::key, "key" },
+		{ ItemName::paper, "paper" },
+		{ ItemName::clip, "clip" }
 	};
 
-	FString DebugMessage = "";
+	return myMap.at(m_itemName);
+}
 
-	if (m_itemName != ItemName::noItem)
-	{
-		DebugMessage = "You got " + myMap.at(m_itemName);
-	}
-
-	GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, DebugMessage);
-
-	/*********************************************************************/
-
-	// disable an actor
-	//SetActorHiddenInGame(true);
-	//SetActorEnableCollision(false);
-	//SetActorTickEnabled(false);
-
-	//this->SetActorHiddenInGame(true);
-
+ItemName AUsableActor::Event(const int innerProduct)
+{
 	return m_itemName;
 }
 

@@ -127,8 +127,9 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	TSharedPtr<SceneNode> wallpaper(new SceneNode("wallpaper"));
 	TSharedPtr<MenuNode> menu(new MenuNode(3, 3, 4));
 	TSharedPtr<MenuNode> memo(new MenuNode(1, 3, 0));
-	TSharedPtr<SceneNode> pictures(new SceneNode("picture"));
 	TSharedPtr<SceneNode> setting(new SceneNode("setting"));
+	TSharedPtr<CameraNode> cameraMode(new CameraNode("camera"));
+	TSharedPtr<LibraryNode> pictures(new LibraryNode(1, 4, 0));
 
 	TSharedPtr<SceneNode> attention(new SceneNode("attention"));
 	attention->SetRelationNode(menu, menu);
@@ -146,6 +147,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	menu4->SetRelationNode(menu, attention);
 	menu->AppendNode(menu4);
 	TSharedPtr<SceneNode> menu5(new SceneNode("menu5"));
+	menu5->SetRelationNode(menu, cameraMode);
 	menu->AppendNode(menu5);
 	TSharedPtr<SceneNode> menu6(new SceneNode("menu6"));
 	menu6->SetRelationNode(menu, pictures);
@@ -167,15 +169,27 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	TSharedPtr<SceneNode> memo3(new SceneNode("memo3"));
 	memo->AppendNode(memo3);
 
+	TSharedPtr<SceneNode> picture1(new SceneNode("book"));
+	pictures->AppendNode(picture1);
+	TSharedPtr<SceneNode> picture2(new SceneNode("paper"));
+	pictures->AppendNode(picture2);
+	TSharedPtr<SceneNode> picture3(new SceneNode("key"));
+	pictures->AppendNode(picture3);
+	TSharedPtr<SceneNode> picture4(new SceneNode("clip"));
+	pictures->AppendNode(picture4);
+
 	wallpaper->SetRelationNode(nullptr, menu);
 	menu->SetRelationNode(wallpaper, nullptr);
 	memo->SetRelationNode(menu, nullptr);
-	pictures->SetRelationNode(menu, nullptr);
 	setting->SetRelationNode(menu, nullptr);
+	pictures->SetRelationNode(menu, nullptr);
+	cameraMode->SetRelationNode(menu, menu);
+	cameraMode->SetLibrary(pictures);
 
 	cellphoneNodes.Add(wallpaper);
 	cellphoneNodes.Add(menu);
 	cellphoneNodes.Add(pictures);
+	cellphoneNodes.Add(cameraMode);
 	cellphoneNodes.Add(memo);
 	cellphoneNodes.Add(setting);
 
@@ -231,20 +245,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
 			
 		}
-		else
-		{
-			m_interval -= DeltaTime;
-			if (m_interval < 0.0f)
-			{
-				UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
-				if (ScreenInstance != nullptr)
-				{
-					char str[] = "";
-					ScreenInstance->SetScalarParameterValue(FName(str), 1.0f);
-				}
-			}
-		}
-
+		
 		UCapsuleComponent *capsule = GetCapsuleComponent();
 
 		//ågë—Ç™ÇﬂÇËçûÇ‹Ç»Ç¢ÇΩÇﬂÇ…ÅAìñÇΩÇËîªíËÇàÍéûï‚ê≥
@@ -264,8 +265,13 @@ void APlayerCharacter::Tick(float DeltaTime)
 	{
 		if (m_openAxis < maxOpenAxis)
 		{
-			m_openAxis = maxOpenAxis;
+			m_openAxis += openSpeed * DeltaTime;
 			m_TurnAxis->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_openAxis)));
+			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
+			if (m_openAxis >= maxOpenAxis)
+			{
+				SetHiddenCellphone(true);
+			}
 			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
 		}
 
@@ -447,43 +453,53 @@ void APlayerCharacter::RightFlashlight(float value)
 
 void APlayerCharacter::OccurEvent()
 {
+	static int i = 0;
 	if (m_isOperateCellphone)
 	{
-		/*
-		if (cellphoneStep == 0 || cellphoneStep == 2)
-		{
-			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
-			if (ScreenInstance != nullptr)
-			{
-				ScreenInstance->SetScalarParameterValue(FName(parameters[cellphoneStep++]), 1.0f);
-			}
-
-			if(m_decideSound != nullptr)
-				
-		}
-		*/
-
 		TSharedPtr<SceneNode> ptr = _currentSceneNode->GetNextNode();
 
 		if (ptr.IsValid())
 		{
 			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
-			
-			//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, ptr->GetStatusName());
-			if (ScreenInstance != nullptr)
-			{
-				ScreenInstance->SetScalarParameterValue(_currentStatusName, 0.0f);
-				
-				_currentStatusName = ptr->GetStatusName();
-				if (_currentStatusName.Compare("attention") == 0)
-				{
-					//ptr->SetRelationNode(_currentSceneNode, nullptr);
-				}
-				_currentSceneNode = ptr;
+			FName status = ptr->GetStatusName();
 
-				ScreenInstance->SetScalarParameterValue(_currentStatusName, 1.0f);
-				
-				UGameplayStatics::PlaySoundAtLocation(this, m_decideSound, GetActorLocation());
+			if (ScreenInstance != nullptr && status.Compare("") != 0)
+			{
+				if (status.Compare("camera") == 0)
+				{
+					if (ptr->RegisterToLibrary(currentFocusActor))
+					{
+						//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "step" + FString::FromInt(i++));
+						ScreenInstance->SetScalarParameterValue(_currentStatusName, 0.0f);
+
+						_currentStatusName = currentFocusActor->GetItemFName();
+						_currentSceneNode = ptr;
+
+						ScreenInstance->SetScalarParameterValue(_currentStatusName, 1.0f);
+
+						currentFocusActor = nullptr;
+
+						if (m_shutterSound != NULL)
+						{
+							UGameplayStatics::PlaySoundAtLocation(this, m_shutterSound, GetActorLocation());
+						}
+					}
+				}
+				else
+				{
+					
+					ScreenInstance->SetScalarParameterValue(_currentStatusName, 0.0f);
+
+					_currentStatusName = status;
+					_currentSceneNode = ptr;
+
+					ScreenInstance->SetScalarParameterValue(_currentStatusName, 1.0f);
+
+					if (m_decideSound != NULL)
+					{
+						UGameplayStatics::PlaySoundAtLocation(this, m_decideSound, GetActorLocation());
+					}
+				}
 			}
 		}
 	}
@@ -524,10 +540,6 @@ void APlayerCharacter::OccurEvent()
 					FirstPersonCamera->SetRelativeLocation(FVector(0.0f, 0.0f, pos.Z));
 				}
 			}
-			else if(item != ItemName::noItem)
-			{
-				PickupItem(item);
-			}
 
 			currentFocusActor->StartFocus();
 		}
@@ -542,10 +554,11 @@ void APlayerCharacter::CancelEvent()
 		if (ptr.IsValid())
 		{
 			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
-			if (ScreenInstance != nullptr)
+			FName status = ptr->GetStatusName();
+			if (ScreenInstance != nullptr && status.Compare("") != 0)
 			{
 				ScreenInstance->SetScalarParameterValue(_currentStatusName, 0.0f);
-				_currentStatusName = ptr->GetStatusName();
+				_currentStatusName = status;
 				ScreenInstance->SetScalarParameterValue(_currentStatusName, 1.0f);
 			}
 			_currentSceneNode = ptr;
@@ -598,10 +611,6 @@ void APlayerCharacter::LoseItem(ItemName itemName)
 void APlayerCharacter::SetIsOperateCellphone()
 {
 	m_isOperateCellphone = !m_isOperateCellphone;
-	m_UnderBodyMesh->SetHiddenInGame(!m_isOperateCellphone);
-	m_TurnAxis->SetHiddenInGame(!m_isOperateCellphone);
-	m_TopBodyMesh->SetHiddenInGame(!m_isOperateCellphone);
-	m_Screen->SetHiddenInGame(!m_isOperateCellphone);
 
 	//camera focas setting
 	FirstPersonCamera->PostProcessSettings.bOverride_DepthOfFieldMethod = m_isOperateCellphone;
@@ -623,10 +632,22 @@ void APlayerCharacter::SetIsOperateCellphone()
 
 		SetDofField(0.0f);
 	}
-	else if(currentFocusActor != nullptr)
+	else 
 	{
-		currentFocusActor->EndFocus();
+		SetHiddenCellphone(false);
+		if (currentFocusActor != nullptr)
+		{
+			currentFocusActor->EndFocus();
+		}
 	}
+}
+
+void APlayerCharacter::SetHiddenCellphone(bool flag)
+{
+	m_UnderBodyMesh->SetHiddenInGame(flag);
+	m_TurnAxis->SetHiddenInGame(flag);
+	m_TopBodyMesh->SetHiddenInGame(flag);
+	m_Screen->SetHiddenInGame(flag);
 }
 
 void APlayerCharacter::SetIsSquat()
@@ -730,7 +751,9 @@ APlayerCharacter::MenuNode::MenuNode(int len, int row, int defaultPos) :
 	MAX_ROW_COUNT(row),
 	DEFAULT_POS(defaultPos),
 	_currentLenCount(0),
-	_currentRowCount(0)
+	_currentRowCount(0),
+	_lenIntervalCount(0),
+	_rowIntervalCount(0)
 {
 	_currentLenCount = defaultPos / MAX_ROW_COUNT;
 	_currentRowCount = defaultPos % MAX_LEN_COUNT;
@@ -768,29 +791,49 @@ FName APlayerCharacter::MenuNode::GetStatusName()
 
 FName APlayerCharacter::MenuNode::MoveUp(float value)
 {
+	if (value != 0.0f && --_lenIntervalCount > 0)
+	{
+		return "";
+	}
+	else if (value == 0.0f)
+	{
+		_lenIntervalCount = 0;
+	}
+
 	if (value < 0.0f && _currentLenCount < MAX_LEN_COUNT - 1)
 	{
 		++_currentLenCount;
 		int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
+		_lenIntervalCount = 30;
 		return contentNodes[index]->GetStatusName();
 	}
 	else if (value > 0.0f && _currentLenCount > 0)
 	{
 		--_currentLenCount;
 		int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
+		_lenIntervalCount = 30;
 		return contentNodes[index]->GetStatusName();
 	}
-
 
 	return "";
 }
 
 FName APlayerCharacter::MenuNode::MoveRight(float value)
 {
+	if (value != 0.0f && --_rowIntervalCount > 0)
+	{
+		return "";
+	}
+	else if (value == 0.0f)
+	{
+		_rowIntervalCount = 0;
+	}
+
 	if (value > 0.0f && _currentRowCount < MAX_ROW_COUNT - 1)
 	{
 		++_currentRowCount;
 		int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
+		_rowIntervalCount = 30;
 		return contentNodes[index]->GetStatusName();
 
 	}
@@ -798,6 +841,7 @@ FName APlayerCharacter::MenuNode::MoveRight(float value)
 	{
 		--_currentRowCount;
 		int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
+		_rowIntervalCount = 30;
 		return contentNodes[index]->GetStatusName();
 	}
 
@@ -805,3 +849,160 @@ FName APlayerCharacter::MenuNode::MoveRight(float value)
 }
 
 /***********************************************************************************************************************************/
+
+APlayerCharacter::LibraryNode::LibraryNode(int len, int row, int defaultPos) :
+	MenuNode(len, row, defaultPos),
+	_flags(0)
+{
+
+}
+
+bool APlayerCharacter::LibraryNode::SetFlag(int flag)
+{
+	if (((1 << flag) & _flags) == 0)
+	{
+		_flags |= (1 << flag);
+		return true;
+	}
+
+	return false;
+}
+
+bool APlayerCharacter::LibraryNode::FindFlag(int flag)
+{
+	if (flag < contentNodes.Num() && ((1 << flag) & _flags) != 0)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+FName APlayerCharacter::LibraryNode::GetStatusName()
+{
+	for (int i = 0; i < contentNodes.Num(); ++i)
+	{
+		if (FindFlag(i))
+		{
+			return contentNodes[i]->GetStatusName();
+		}
+	}
+
+	return "";
+}
+
+FName APlayerCharacter::LibraryNode::MoveUp(float value)
+{
+	int tempCount = _currentLenCount;
+
+	if (value != 0.0f && --_lenIntervalCount > 0)
+	{
+		return "";
+	}
+	else if (value == 0.0f)
+	{
+		_lenIntervalCount = 0;
+	}
+
+	if (value < 0.0f && _currentLenCount < MAX_LEN_COUNT - 1)
+	{
+		for (++_currentLenCount; _currentLenCount < MAX_LEN_COUNT; ++_currentLenCount)
+		{
+			if (FindFlag(_currentLenCount))
+			{
+				int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
+				_lenIntervalCount = 30;
+				return contentNodes[index]->GetStatusName();
+			}
+		}
+	}
+	else if (value > 0.0f && _currentLenCount > 0)
+	{
+		for (--_currentLenCount; _currentLenCount >= 0; --_currentLenCount)
+		{
+			if (FindFlag(_currentLenCount))
+			{
+				int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
+				_lenIntervalCount = 30;
+				return contentNodes[index]->GetStatusName();
+			}
+		}
+	}
+
+	_currentLenCount = tempCount;
+
+	return "";
+}
+
+FName APlayerCharacter::LibraryNode::MoveRight(float value)
+{
+	int tempCount = _currentRowCount;
+
+	if (value != 0.0f && --_rowIntervalCount > 0)
+	{
+		return "";
+	}
+	else if (value == 0.0f)
+	{
+		_rowIntervalCount = 0;
+	}
+
+	if (value < 0.0f && _currentRowCount < MAX_ROW_COUNT - 1)
+	{
+		for (++_currentRowCount; _currentRowCount < MAX_ROW_COUNT; ++_currentRowCount)
+		{
+			if (FindFlag(_currentRowCount))
+			{
+				int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
+				_rowIntervalCount = 30;
+				return contentNodes[index]->GetStatusName();
+			}
+		}
+	}
+	else if (value > 0.0f && _currentRowCount > 0)
+	{
+		for (--_currentRowCount; _currentRowCount >= 0; --_currentRowCount)
+		{
+			if (FindFlag(_currentRowCount))
+			{
+				int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
+				_rowIntervalCount = 30;
+				return contentNodes[index]->GetStatusName();
+			}
+		}
+	}
+
+	_currentRowCount = tempCount;
+
+	return "";
+}
+
+/**********************************************************************************************************************/
+
+APlayerCharacter::CameraNode::CameraNode(FName statusName) :
+	SceneNode(statusName)
+{
+
+}
+
+void APlayerCharacter::CameraNode::SetLibrary(TSharedPtr<LibraryNode> library)
+{
+	if (library.IsValid())
+	{
+		targetLibrary = library;
+	}
+}
+
+bool APlayerCharacter::CameraNode::RegisterToLibrary(AUsableActor* focusActor)
+{
+	if (focusActor != nullptr)
+	{
+		int targetItem = static_cast<int>(focusActor->GetItemName());
+		if (!targetLibrary->FindFlag(targetItem) && targetLibrary->SetFlag(targetItem))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}

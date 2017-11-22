@@ -78,6 +78,7 @@ private:
 	void LoseItem(enum class ItemName itemName);
 
 	void SetIsOperateCellphone();
+	void SetHiddenCellphone(bool flag);
 	void SetIsSquat();
 
 	void Squat(float deltaTime);
@@ -169,6 +170,11 @@ private:
 			return "";
 		}
 
+		virtual bool RegisterToLibrary(AUsableActor* focusActor)
+		{
+			return false;
+		}
+
 	private:
 		FName _statusName;
 
@@ -191,11 +197,40 @@ private:
 		virtual FName MoveUp(float value) override;
 		virtual FName MoveRight(float value) override;
 
-	private:
+	protected:
 		const int MAX_LEN_COUNT, MAX_ROW_COUNT, DEFAULT_POS;
-		int _currentLenCount, _currentRowCount;
+		int _currentLenCount, _currentRowCount, _lenIntervalCount, _rowIntervalCount;
 
 		TArray<TSharedPtr<SceneNode>> contentNodes;
+	};
+
+	class LibraryNode : public MenuNode
+	{
+	public:
+		LibraryNode(int len, int row, int defaultPos);
+
+		bool SetFlag(int flag);
+		bool FindFlag(int flag);
+
+		virtual FName GetStatusName() override;
+
+		virtual FName MoveUp(float value) override;
+		virtual FName MoveRight(float value) override;
+
+	private:
+		unsigned int _flags;
+	};
+
+	class CameraNode : public SceneNode
+	{
+	public:
+		CameraNode(FName statusName);
+
+		virtual bool RegisterToLibrary(AUsableActor* focusActor)override;
+		void SetLibrary(TSharedPtr<LibraryNode> library);
+
+	private:
+		TSharedPtr<LibraryNode> targetLibrary;
 	};
 
 	TArray<TSharedPtr<SceneNode>> cellphoneNodes;
