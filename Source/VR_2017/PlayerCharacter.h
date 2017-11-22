@@ -35,6 +35,7 @@ public:
 	void RightFlashlight(float value);
 
 	void OccurEvent();
+	void CancelEvent();
 
 	class AUsableActor* GetUsableInView();
 
@@ -77,6 +78,7 @@ private:
 	void LoseItem(enum class ItemName itemName);
 
 	void SetIsOperateCellphone();
+	void SetHiddenCellphone(bool flag);
 	void SetIsSquat();
 
 	void Squat(float deltaTime);
@@ -142,7 +144,97 @@ private:
 	UPROPERTY(EditAnywhere)
 		USoundBase* m_decideSound;
 
+	UPROPERTY(EditAnywhere)
+		USoundBase* m_cancelSound;
+
 	float dir;
+
+	FName _currentStatusName;
+
+	class SceneNode
+	{
+	public:
+		SceneNode(FName statusName);
+		void SetRelationNode(TSharedPtr<SceneNode> back, TSharedPtr<SceneNode> next);
+		TSharedPtr<SceneNode> GetBackNode();
+		virtual TSharedPtr<SceneNode> GetNextNode();
+		virtual FName GetStatusName();
+
+		virtual FName MoveUp(float value)
+		{
+			return "";
+		}
+
+		virtual FName MoveRight(float value)
+		{
+			return "";
+		}
+
+		virtual bool RegisterToLibrary(AUsableActor* focusActor)
+		{
+			return false;
+		}
+
+	private:
+		FName _statusName;
+
+	protected:
+		TSharedPtr<SceneNode> _backNode;
+		TSharedPtr<SceneNode> _nextNode;
+	};
+
+	class MenuNode : public SceneNode
+	{
+	public:
+		MenuNode(int len, int row, int defaulPos);
+
+		virtual TSharedPtr<SceneNode> GetNextNode();
+
+		void AppendNode(TSharedPtr<SceneNode> node);
+
+		virtual FName GetStatusName() override;
+
+		virtual FName MoveUp(float value) override;
+		virtual FName MoveRight(float value) override;
+
+	protected:
+		const int MAX_LEN_COUNT, MAX_ROW_COUNT, DEFAULT_POS;
+		int _currentLenCount, _currentRowCount, _lenIntervalCount, _rowIntervalCount;
+
+		TArray<TSharedPtr<SceneNode>> contentNodes;
+	};
+
+	class LibraryNode : public MenuNode
+	{
+	public:
+		LibraryNode(int len, int row, int defaultPos);
+
+		bool SetFlag(int flag);
+		bool FindFlag(int flag);
+
+		virtual FName GetStatusName() override;
+
+		virtual FName MoveUp(float value) override;
+		virtual FName MoveRight(float value) override;
+
+	private:
+		unsigned int _flags;
+	};
+
+	class CameraNode : public SceneNode
+	{
+	public:
+		CameraNode(FName statusName);
+
+		virtual bool RegisterToLibrary(AUsableActor* focusActor)override;
+		void SetLibrary(TSharedPtr<LibraryNode> library);
+
+	private:
+		TSharedPtr<LibraryNode> targetLibrary;
+	};
+
+	TArray<TSharedPtr<SceneNode>> cellphoneNodes;
+	TSharedPtr<SceneNode> _currentSceneNode;
 
 
 /******Debug*******/

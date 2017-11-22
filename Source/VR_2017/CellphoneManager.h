@@ -24,6 +24,43 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
+	class StatusNode 
+	{
+	public:
+		StatusNode(char* statusName);
+		char* GetStatusName();
+
+	private:
+		char* _statusName;
+	};
+
+	class SceneNode
+	{
+	public:
+		SceneNode(int row, int len);
+
+		void MoveRight(int value);
+		void MoveUp(int value);
+
+		void Event();
+
+		void Back();
+
+		void AppendStatus(StatusNode* node);
+
+		void SetRelatedScenes(SceneNode* nextScene, SceneNode* backScene);
+
+	private:
+		TArray<StatusNode*> statusList;
+
+		const int MAX_RAW_COUNT, MAX_LEN_COUNT;
+
+		int _currentRowCount, _currentLenCount;
+
+		SceneNode* _nextScene;
+		SceneNode* _backScene;
+	};
+
 	UPROPERTY(EditAnywhere)
 		UMeshComponent* underBody;
 
