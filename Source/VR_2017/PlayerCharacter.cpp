@@ -125,37 +125,59 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	*/
 
 	TSharedPtr<SceneNode> wallpaper(new SceneNode("wallpaper"));
-
 	TSharedPtr<MenuNode> menu(new MenuNode(3, 3, 4));
+	TSharedPtr<MenuNode> memo(new MenuNode(1, 3, 0));
+	TSharedPtr<SceneNode> pictures(new SceneNode("picture"));
+	TSharedPtr<SceneNode> setting(new SceneNode("setting"));
+
+	TSharedPtr<SceneNode> attention(new SceneNode("attention"));
+	attention->SetRelationNode(menu, menu);
+
 	TSharedPtr<SceneNode> menu1(new SceneNode("menu1"));
+	menu1->SetRelationNode(menu, attention);
 	menu->AppendNode(menu1);
 	TSharedPtr<SceneNode> menu2(new SceneNode("menu2"));
+	menu2->SetRelationNode(menu, attention);
 	menu->AppendNode(menu2);
 	TSharedPtr<SceneNode> menu3(new SceneNode("menu3"));
+	menu3->SetRelationNode(menu, attention);
 	menu->AppendNode(menu3);
 	TSharedPtr<SceneNode> menu4(new SceneNode("menu4"));
+	menu4->SetRelationNode(menu, attention);
 	menu->AppendNode(menu4);
 	TSharedPtr<SceneNode> menu5(new SceneNode("menu5"));
 	menu->AppendNode(menu5);
 	TSharedPtr<SceneNode> menu6(new SceneNode("menu6"));
+	menu6->SetRelationNode(menu, pictures);
 	menu->AppendNode(menu6);
 	TSharedPtr<SceneNode> menu7(new SceneNode("menu7"));
+	menu7->SetRelationNode(menu, attention);
 	menu->AppendNode(menu7);
 	TSharedPtr<SceneNode> menu8(new SceneNode("menu8"));
+	menu8->SetRelationNode(menu, memo);
 	menu->AppendNode(menu8);
 	TSharedPtr<SceneNode> menu9(new SceneNode("menu9"));
+	menu9->SetRelationNode(menu, setting);
 	menu->AppendNode(menu9);
 
-	TSharedPtr<SceneNode> pictures(new SceneNode("pictures"));
-
+	TSharedPtr<SceneNode> memo1(new SceneNode("memo1"));
+	memo->AppendNode(memo1);
+	TSharedPtr<SceneNode> memo2(new SceneNode("memo2"));
+	memo->AppendNode(memo2);
+	TSharedPtr<SceneNode> memo3(new SceneNode("memo3"));
+	memo->AppendNode(memo3);
 
 	wallpaper->SetRelationNode(nullptr, menu);
 	menu->SetRelationNode(wallpaper, nullptr);
+	memo->SetRelationNode(menu, nullptr);
 	pictures->SetRelationNode(menu, nullptr);
+	setting->SetRelationNode(menu, nullptr);
 
 	cellphoneNodes.Add(wallpaper);
 	cellphoneNodes.Add(menu);
 	cellphoneNodes.Add(pictures);
+	cellphoneNodes.Add(memo);
+	cellphoneNodes.Add(setting);
 
 	_currentSceneNode = wallpaper;
 }
@@ -335,16 +357,16 @@ void APlayerCharacter::MoveForward(float value)
 {
 	if (m_isOperateCellphone)
 	{
-		char* statusName = _currentSceneNode->MoveUp(value);
-		if (statusName != nullptr)
+		FName statusName = _currentSceneNode->MoveUp(value);
+		if (statusName.Compare("") != 0)
 		{
-			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, statusName);
 			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
 			if (ScreenInstance != nullptr)
 			{
 				ScreenInstance->SetScalarParameterValue(FName(_currentStatusName), 0.0f);
 				_currentStatusName = statusName;
 				ScreenInstance->SetScalarParameterValue(FName(statusName), 1.0f);
+				UGameplayStatics::PlaySoundAtLocation(this, m_operateSound, GetActorLocation());
 			}
 		}
 
@@ -364,39 +386,17 @@ void APlayerCharacter::MoveRight(float value)
 {
 	if(m_isOperateCellphone)
 	{
-		/*
-		if (value < 0 && (cellphoneStep == 2 || cellphoneStep == 4))
+		FName statusName = _currentSceneNode->MoveRight(value);
+		if (statusName.Compare("") != 0)
 		{
-			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
-			if (ScreenInstance != nullptr)
-			{
-				ScreenInstance->SetScalarParameterValue(FName(parameters[--cellphoneStep]), 0.0f);
-			}
-			if(m_operateSound != nullptr)
-				UGameplayStatics::PlaySoundAtLocation(this, m_operateSound, GetActorLocation());
-		}
-		else if (value > 0 && (cellphoneStep == 1 || cellphoneStep == 3))
-		{
-			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
-			if (ScreenInstance != nullptr)
-			{
-				ScreenInstance->SetScalarParameterValue(FName(parameters[cellphoneStep++]), 1.0f);
-			}
-			if (m_operateSound != nullptr)
-				UGameplayStatics::PlaySoundAtLocation(this, m_operateSound, GetActorLocation());
-		}
-		*/
-
-		char* statusName = _currentSceneNode->MoveRight(value);
-		if (statusName != nullptr)
-		{
-			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, statusName);
+			//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, statusName);
 			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
 			if (ScreenInstance != nullptr)
 			{
 				ScreenInstance->SetScalarParameterValue(FName(_currentStatusName), 0.0f);
 				_currentStatusName = statusName;
 				ScreenInstance->SetScalarParameterValue(FName(statusName), 1.0f);
+				UGameplayStatics::PlaySoundAtLocation(this, m_operateSound, GetActorLocation());
 			}
 		}
 	}
@@ -459,7 +459,7 @@ void APlayerCharacter::OccurEvent()
 			}
 
 			if(m_decideSound != nullptr)
-				UGameplayStatics::PlaySoundAtLocation(this, m_decideSound, GetActorLocation());
+				
 		}
 		*/
 
@@ -468,13 +468,22 @@ void APlayerCharacter::OccurEvent()
 		if (ptr.IsValid())
 		{
 			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
-			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, ptr->GetStatusName());
+			
+			//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, ptr->GetStatusName());
 			if (ScreenInstance != nullptr)
 			{
-				ScreenInstance->SetScalarParameterValue(FName(_currentSceneNode->GetStatusName()), 0.0f);
+				ScreenInstance->SetScalarParameterValue(_currentStatusName, 0.0f);
+				
+				_currentStatusName = ptr->GetStatusName();
+				if (_currentStatusName.Compare("attention") == 0)
+				{
+					//ptr->SetRelationNode(_currentSceneNode, nullptr);
+				}
 				_currentSceneNode = ptr;
-				_currentStatusName = _currentSceneNode->GetStatusName();
-				ScreenInstance->SetScalarParameterValue(FName(_currentSceneNode->GetStatusName()), 1.0f);
+
+				ScreenInstance->SetScalarParameterValue(_currentStatusName, 1.0f);
+				
+				UGameplayStatics::PlaySoundAtLocation(this, m_decideSound, GetActorLocation());
 			}
 		}
 	}
@@ -535,9 +544,12 @@ void APlayerCharacter::CancelEvent()
 			UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
 			if (ScreenInstance != nullptr)
 			{
-				ScreenInstance->SetScalarParameterValue(FName(_currentSceneNode->GetStatusName()), 0.0f);
+				ScreenInstance->SetScalarParameterValue(_currentStatusName, 0.0f);
+				_currentStatusName = ptr->GetStatusName();
+				ScreenInstance->SetScalarParameterValue(_currentStatusName, 1.0f);
 			}
 			_currentSceneNode = ptr;
+			UGameplayStatics::PlaySoundAtLocation(this, m_cancelSound, GetActorLocation());
 		}
 	}
 }
@@ -603,11 +615,6 @@ void APlayerCharacter::SetIsOperateCellphone()
 	if (!m_isOperateCellphone)
 	{
 		m_interval = 1.0f;
-		UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
-		if (ScreenInstance != nullptr)
-		{
-			ScreenInstance->SetScalarParameterValue(FName("RastAmount"), 0.0f);
-		}
 
 		//ìñÇΩÇËîªíËÇÃï‚ê≥Çâèú
 		m_capsuleRadius = originalCapsuleRadius;
@@ -686,7 +693,7 @@ void APlayerCharacter::SetDofField(float value)
 
 /*****************************************************************************************************************************/
 
-APlayerCharacter::SceneNode::SceneNode(char* statusName):
+APlayerCharacter::SceneNode::SceneNode(FName statusName):
 	_statusName(statusName)
 {
 
@@ -694,8 +701,10 @@ APlayerCharacter::SceneNode::SceneNode(char* statusName):
 
 void APlayerCharacter::SceneNode::SetRelationNode(TSharedPtr<SceneNode> back, TSharedPtr<SceneNode> next)
 {
-	_backNode = back;
-	_nextNode = next;
+	if(back.IsValid())
+		_backNode = back;
+	if(next.IsValid())
+		_nextNode = next;
 }
 
 TSharedPtr<APlayerCharacter::SceneNode> APlayerCharacter::SceneNode::GetBackNode()
@@ -708,7 +717,7 @@ TSharedPtr<APlayerCharacter::SceneNode> APlayerCharacter::SceneNode::GetNextNode
 	return _nextNode;
 }
 
-char* APlayerCharacter::SceneNode::GetStatusName()
+FName APlayerCharacter::SceneNode::GetStatusName()
 {
 	return _statusName;
 }
@@ -747,7 +756,7 @@ void APlayerCharacter::MenuNode::AppendNode(TSharedPtr<SceneNode> node)
 	}
 }
 
-char* APlayerCharacter::MenuNode::GetStatusName()
+FName APlayerCharacter::MenuNode::GetStatusName()
 {
 	_currentLenCount = DEFAULT_POS / MAX_ROW_COUNT;
 	_currentRowCount = DEFAULT_POS % MAX_LEN_COUNT;
@@ -757,31 +766,33 @@ char* APlayerCharacter::MenuNode::GetStatusName()
 	return contentNodes[index]->GetStatusName();
 }
 
-char* APlayerCharacter::MenuNode::MoveUp(float value)
+FName APlayerCharacter::MenuNode::MoveUp(float value)
 {
-	if (value > 0.0f && _currentLenCount < MAX_LEN_COUNT - 1)
+	if (value < 0.0f && _currentLenCount < MAX_LEN_COUNT - 1)
 	{
 		++_currentLenCount;
 		int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
 		return contentNodes[index]->GetStatusName();
 	}
-	else if (value < 0.0f && _currentLenCount > 0)
+	else if (value > 0.0f && _currentLenCount > 0)
 	{
 		--_currentLenCount;
 		int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
 		return contentNodes[index]->GetStatusName();
 	}
 
-	return nullptr;
+
+	return "";
 }
 
-char* APlayerCharacter::MenuNode::MoveRight(float value)
+FName APlayerCharacter::MenuNode::MoveRight(float value)
 {
 	if (value > 0.0f && _currentRowCount < MAX_ROW_COUNT - 1)
 	{
 		++_currentRowCount;
 		int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
 		return contentNodes[index]->GetStatusName();
+
 	}
 	else if (value < 0.0f && _currentRowCount > 0)
 	{
@@ -790,7 +801,7 @@ char* APlayerCharacter::MenuNode::MoveRight(float value)
 		return contentNodes[index]->GetStatusName();
 	}
 
-	return nullptr;
+	return "";
 }
 
 /***********************************************************************************************************************************/

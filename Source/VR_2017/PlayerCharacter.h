@@ -143,31 +143,34 @@ private:
 	UPROPERTY(EditAnywhere)
 		USoundBase* m_decideSound;
 
+	UPROPERTY(EditAnywhere)
+		USoundBase* m_cancelSound;
+
 	float dir;
 
-	char* _currentStatusName;
+	FName _currentStatusName;
 
 	class SceneNode
 	{
 	public:
-		SceneNode(char* statusName);
+		SceneNode(FName statusName);
 		void SetRelationNode(TSharedPtr<SceneNode> back, TSharedPtr<SceneNode> next);
 		TSharedPtr<SceneNode> GetBackNode();
 		virtual TSharedPtr<SceneNode> GetNextNode();
-		virtual char* GetStatusName();
+		virtual FName GetStatusName();
 
-		virtual char* MoveUp(float value)
+		virtual FName MoveUp(float value)
 		{
-			return nullptr;
+			return "";
 		}
 
-		virtual char* MoveRight(float value)
+		virtual FName MoveRight(float value)
 		{
-			return nullptr;
+			return "";
 		}
 
 	private:
-		char* _statusName;
+		FName _statusName;
 
 	protected:
 		TSharedPtr<SceneNode> _backNode;
@@ -183,10 +186,10 @@ private:
 
 		void AppendNode(TSharedPtr<SceneNode> node);
 
-		virtual char* GetStatusName() override;
+		virtual FName GetStatusName() override;
 
-		virtual char* MoveUp(float value) override;
-		virtual char* MoveRight(float value) override;
+		virtual FName MoveUp(float value) override;
+		virtual FName MoveRight(float value) override;
 
 	private:
 		const int MAX_LEN_COUNT, MAX_ROW_COUNT, DEFAULT_POS;
