@@ -181,6 +181,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	pictures->AppendNode(picture3);
 	TSharedPtr<SceneNode> picture4(new SceneNode("clip"));
 	pictures->AppendNode(picture4);
+	TSharedPtr<SceneNode> picture5(new SceneNode("item"));
+	pictures->AppendNode(picture5);
 
 	wallpaper->SetRelationNode(nullptr, menu);
 	menu->SetRelationNode(wallpaper, nullptr);
@@ -240,7 +242,7 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::FinishGame()
 {
 	
-	if (Matinee_End != nullptr)
+	/*if (Matinee_End != nullptr)
 	{
 		class APlayerController * MyPC = Cast<APlayerController>(Controller);
 		MyPC->ClientSetCameraFade(true, FColor::Black, FVector2D(1.0, 0.0), 10.0);
@@ -259,7 +261,7 @@ void APlayerCharacter::FinishGame()
 			class APlayerController * MyPC = Cast<APlayerController>(Controller);
 			MyPC->ClientSetCameraFade(true, FColor::Black, FVector2D(1.0, 1.0), 10.0);
 		}
-	}
+	}*/
 }
 
 // Called every frame

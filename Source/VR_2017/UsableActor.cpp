@@ -41,7 +41,8 @@ FName AUsableActor::GetItemFName()
 		{ ItemName::book, "book" },
 		{ ItemName::key, "key" },
 		{ ItemName::paper, "paper" },
-		{ ItemName::clip, "clip" }
+		{ ItemName::clip, "clip" },
+		{ItemName::item, "item"}
 	};
 
 	return myMap.at(m_itemName);
