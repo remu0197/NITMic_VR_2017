@@ -7,6 +7,8 @@
 #include "DialBank2.h"
 #include "TimeManager.h"
 #include "CellphoneManager.h"
+#include "Matinee/MatineeActor.h"
+#include "TimerManager.h"
 #include <random>
 #include <string>
 
@@ -33,7 +35,9 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	m_multiInputValue(0.0f),
 	m_stepTime(0.0f),
 	dir(0.0f),
-	_currentStatusName("")
+	_currentStatusName(""),
+	pastTime(0.0f),
+	isEnd(false)
 {
 	m_capsuleRadius = originalCapsuleRadius;
 
@@ -201,6 +205,8 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	//c
+
 	m_UnderBodyMesh->SetHiddenInGame(true);
 	m_TurnAxis->SetHiddenInGame(true);
 	m_TopBodyMesh->SetHiddenInGame(true);
@@ -227,14 +233,39 @@ void APlayerCharacter::BeginPlay()
 		m_Screen->SetMaterial(0, screenMaterial);
 	}
 	*/
+
+	GetWorldTimerManager().SetTimer(handle, this, &APlayerCharacter::FinishGame, 10.0f, true, 10.0f);
+}
+
+void APlayerCharacter::FinishGame()
+{
+	
+	if (Matinee_End != nullptr)
+	{
+		class APlayerController * MyPC = Cast<APlayerController>(Controller);
+		MyPC->ClientSetCameraFade(true, FColor::Black, FVector2D(1.0, 0.0), 10.0);
+	}
+	else
+	{
+		if (!isEnd)
+		{
+			isEnd = true;
+			class APlayerController * MyPC = Cast<APlayerController>(Controller);
+			MyPC->ClientSetCameraFade(true, FColor::Black, FVector2D(0.0, 1.0), 10.0);
+			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Step");
+		}
+		else
+		{
+			class APlayerController * MyPC = Cast<APlayerController>(Controller);
+			MyPC->ClientSetCameraFade(true, FColor::Black, FVector2D(1.0, 1.0), 10.0);
+		}
+	}
 }
 
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	TimeManager::AddPastTime(DeltaTime);
 
 	if (m_isOperateCellphone)
 	{
@@ -350,6 +381,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	InputComponent->BindAxis("LookUp", this, &APlayerCharacter::UpFlashlight/*AddControllerPitchInput*/);
 
 	InputComponent->BindAction("OccurEvent", IE_Pressed, this, &APlayerCharacter::OccurEvent);
+	InputComponent->BindAction("OccurEvent", IE_Released, this, &APlayerCharacter::FinishOperateBank);
 
 	InputComponent->BindAction("OpenCellphone", IE_Pressed, this, &APlayerCharacter::SetIsOperateCellphone);
 
@@ -412,9 +444,9 @@ void APlayerCharacter::MoveRight(float value)
 		{
 			m_isOperateBank = false;
 			unlockedBankList.Add(m_currentOperateBank);
-			FirstPersonCamera->SetRelativeLocation(defaultCameraPos);
-			FVector pos = GetCapsuleComponent()->GetComponentLocation();
-			GetCapsuleComponent()->SetWorldLocation(FVector(pos.X + (originalCapsuleRadius + 20.0f)*(dir / dir), pos.Y, pos.Z));
+			//FirstPersonCamera->SetRelativeLocation(defaultCameraPos);
+			//FVector pos = GetCapsuleComponent()->GetComponentLocation();
+			//GetCapsuleComponent()->SetWorldLocation(FVector(pos.X + (originalCapsuleRadius + 20.0f)*(dir / dir), pos.Y, pos.Z));
 		}
 	}
 	else
@@ -467,9 +499,9 @@ void APlayerCharacter::OccurEvent()
 			{
 				if (status.Compare("camera") == 0)
 				{
-					if (ptr->RegisterToLibrary(currentFocusActor))
+					
+					if (currentFocusActor->GetItemName() != ItemName::door && currentFocusActor->GetItemName() != ItemName::bank && ptr->RegisterToLibrary(currentFocusActor))
 					{
-						//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "step" + FString::FromInt(i++));
 						ScreenInstance->SetScalarParameterValue(_currentStatusName, 0.0f);
 
 						_currentStatusName = currentFocusActor->GetItemFName();
@@ -484,6 +516,7 @@ void APlayerCharacter::OccurEvent()
 							UGameplayStatics::PlaySoundAtLocation(this, m_shutterSound, GetActorLocation());
 						}
 					}
+					
 				}
 				else
 				{
@@ -519,30 +552,34 @@ void APlayerCharacter::OccurEvent()
 			if (item == ItemName::bank)
 			{
 				ADialBank2* dial = dynamic_cast<ADialBank2*>(currentFocusActor);
-				if (m_isOperateBank)
-				{
-					FirstPersonCamera->SetRelativeLocation(defaultCameraPos);
-					FVector pos = GetCapsuleComponent()->GetComponentLocation();
-					GetCapsuleComponent()->SetWorldLocation(FVector(pos.X + (originalCapsuleRadius + 20.0f)*(dir / dir), pos.Y , pos.Z));
-
-					m_isOperateBank = false;
-				}
-				else if (dial && unlockedBankList.Find(dial) == INDEX_NONE)
+				if (dial && unlockedBankList.Find(dial) == INDEX_NONE)
 				{
 					m_isOperateBank = true;
 					m_currentOperateBank = dial;
 					m_isSquat = false;
-					CameraArm->SetRelativeLocation(FVector(0.0f, 0.0f, BaseEyeHeight));
-					FVector pos = dial->GetCameraPos();
-					float posZ = GetCapsuleComponent()->GetComponentLocation().Z;
+					//CameraArm->SetRelativeLocation(FVector(0.0f, 0.0f, BaseEyeHeight));
+					//FVector pos = dial->GetCameraPos();
+					//float posZ = GetCapsuleComponent()->GetComponentLocation().Z;
 
-					GetCapsuleComponent()->SetWorldLocation(FVector(pos.X, pos.Y, posZ));
-					FirstPersonCamera->SetRelativeLocation(FVector(0.0f, 0.0f, pos.Z));
+					//GetCapsuleComponent()->SetWorldLocation(FVector(pos.X, pos.Y, posZ));
+					//FirstPersonCamera->SetRelativeLocation(FVector(0.0f, 0.0f, pos.Z));
 				}
 			}
 
 			currentFocusActor->StartFocus();
 		}
+	}
+}
+
+void APlayerCharacter::FinishOperateBank()
+{
+	if (m_isOperateBank)
+	{
+		//FirstPersonCamera->SetRelativeLocation(defaultCameraPos);
+		//FVector pos = GetCapsuleComponent()->GetComponentLocation();
+		//GetCapsuleComponent()->SetWorldLocation(FVector(pos.X + (originalCapsuleRadius + 20.0f)*(dir / dir), pos.Y, pos.Z));
+
+		m_isOperateBank = false;
 	}
 }
 
@@ -564,6 +601,14 @@ void APlayerCharacter::CancelEvent()
 			_currentSceneNode = ptr;
 			UGameplayStatics::PlaySoundAtLocation(this, m_cancelSound, GetActorLocation());
 		}
+	}
+	else if (m_isOperateBank)
+	{
+		FirstPersonCamera->SetRelativeLocation(defaultCameraPos);
+		FVector pos = GetCapsuleComponent()->GetComponentLocation();
+		GetCapsuleComponent()->SetWorldLocation(FVector(pos.X + (originalCapsuleRadius + 20.0f)*(dir / dir), pos.Y, pos.Z));
+
+		m_isOperateBank = false;
 	}
 }
 
@@ -870,7 +915,8 @@ bool APlayerCharacter::LibraryNode::SetFlag(int flag)
 
 bool APlayerCharacter::LibraryNode::FindFlag(int flag)
 {
-	if (flag < contentNodes.Num() && ((1 << flag) & _flags) != 0)
+	//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Step" + FString::FromInt(flag));
+	if (flag < 4 && ((1 << flag) & _flags) != 0)
 	{
 		return true;
 	}

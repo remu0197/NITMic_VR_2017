@@ -137,7 +137,6 @@ void ADialBank2::ChangeDialNo(int additionValue, DialTurnDir changeDirValue)
 	{
 		m_currentNextDir = PasscordFirstDir;
 		m_currentPassPhaseCount = 0;
-		GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Fail");
 	}
 
 	m_currentDialNo += additionValue;
@@ -155,11 +154,9 @@ void ADialBank2::ChangeDialNo(int additionValue, DialTurnDir changeDirValue)
 		++m_currentTurnCount;
 		if (m_currentTurnCount == PasscordTurnCount[m_currentPassPhaseCount])
 		{
-			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Step");
 			m_currentTurnCount = 0;
 			if (++m_currentPassPhaseCount == PasscordNo.Num())
 			{
-				GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Success");
 				m_currentPassPhaseCount = 0;
 				m_isOpened = true;
 			}
