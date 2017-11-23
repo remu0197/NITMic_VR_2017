@@ -39,6 +39,9 @@ public:
 
 	class AUsableActor* GetUsableInView();
 
+	UPROPERTY(BlueprintReadWrite, Category = "Switch Components")
+		float pastTime;
+
 private:
 	UPROPERTY(EditAnywhere)
 		UStaticMeshComponent* m_TurnAxis;
@@ -236,7 +239,16 @@ private:
 	TArray<TSharedPtr<SceneNode>> cellphoneNodes;
 	TSharedPtr<SceneNode> _currentSceneNode;
 
+	UPROPERTY(EditAnywhere, Category = "Matinee")
+		AMatineeActor* Matinee_End;
 
+	void FinishOperateBank();
+
+	void FinishGame();
+
+	FTimerHandle handle;
+
+	bool isEnd;
 /******Debug*******/
 private:
 	static const float maxOpenAxis;

@@ -6,7 +6,7 @@
 AMainHUD::AMainHUD()
 {
 	// Set the crosshair texture
-	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshiarTexObj(TEXT("/Game/Textures/crosshair"));
+	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshiarTexObj(TEXT("/Game/UI/timeup"));
 	CrosshairTex = CrosshiarTexObj.Object;
 }
 
@@ -22,14 +22,13 @@ void AMainHUD::DrawHUD()
 
 	// offset by half the texture's dimensions so that the center of the texture aligns with the center of the Canvas
 	// ‰æ‘œ‚Ì¶ã‚ª(0.0f, 0.0f)
-	const FVector2D CrosshairDrawPosition((Center.X - 960.0f),(Center.Y - 540.0f));
+	const FVector2D CrosshairDrawPosition(0.0f, 0.0f);
 
 	// draw the crosshair
 	FCanvasTileItem TileItem(CrosshairDrawPosition, CrosshairTex->Resource, FLinearColor::White);
 	TileItem.BlendMode = SE_BLEND_Translucent;
 	Canvas->DrawItem(TileItem);
+
 }
-
-
 
 

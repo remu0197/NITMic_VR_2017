@@ -38,10 +38,7 @@ public:
 
 	ItemName GetItemName()
 	{
-		if(m_itemName != ItemName::bank && m_itemName != ItemName::door)
-			return m_itemName;
-
-		return ItemName::noItem;
+		return m_itemName;
 	}
 
 	FName GetItemFName();
