@@ -71,17 +71,17 @@ void ADoorActor::Tick(float DeltaTime)
 
 ItemName ADoorActor::Event(const int innerProduct)
 {
-	m_isOpen = true;
-
 	if (innerProduct > 0)
 		openDir = -1;
 	else
 		openDir = 1;
 
-	if (m_SoundEffect != NULL)
+	if (m_SoundEffect != NULL && !m_isOpen)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, m_SoundEffect, GetActorLocation());
 	}
+
+	m_isOpen = true;
 
 	return ItemName::noItem;
 }

@@ -9,6 +9,7 @@
 #include "CellphoneManager.h"
 #include "Matinee/MatineeActor.h"
 #include "TimerManager.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include <random>
 #include <string>
 
@@ -37,6 +38,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	dir(0.0f),
 	_currentStatusName(""),
 	pastTime(0.0f),
+	cellphoneCorrectValue(25.0f),
+	MinOpenAxis(25.0f),
 	isEnd(false)
 {
 	m_capsuleRadius = originalCapsuleRadius;
@@ -133,7 +136,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	TSharedPtr<MenuNode> memo(new MenuNode(1, 3, 0));
 	TSharedPtr<SceneNode> setting(new SceneNode("setting"));
 	TSharedPtr<CameraNode> cameraMode(new CameraNode("camera"));
-	TSharedPtr<LibraryNode> pictures(new LibraryNode(1, 4, 0));
+	TSharedPtr<LibraryNode> pictures(new LibraryNode(1, 5, 0));
 
 	TSharedPtr<SceneNode> attention(new SceneNode("attention"));
 	attention->SetRelationNode(menu, menu);
@@ -181,6 +184,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	pictures->AppendNode(picture3);
 	TSharedPtr<SceneNode> picture4(new SceneNode("clip"));
 	pictures->AppendNode(picture4);
+	TSharedPtr<SceneNode> picture5(new SceneNode("item"));
+	pictures->AppendNode(picture5);
 
 	wallpaper->SetRelationNode(nullptr, menu);
 	menu->SetRelationNode(wallpaper, nullptr);
@@ -197,7 +202,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitialier) :
 	cellphoneNodes.Add(memo);
 	cellphoneNodes.Add(setting);
 
-	_currentSceneNode = wallpaper;
+	_currentSceneNode = setting;
+
 }
 
 // Called when the game starts or when spawned
@@ -234,31 +240,26 @@ void APlayerCharacter::BeginPlay()
 	}
 	*/
 
-	GetWorldTimerManager().SetTimer(handle, this, &APlayerCharacter::FinishGame, 10.0f, true, 10.0f);
+	GetWorldTimerManager().SetTimer(handle, this, &APlayerCharacter::FinishGame, 9.9f, true, 600.0f);
+
+	UMaterialInstanceDynamic* ScreenInstance = m_Screen->CreateDynamicMaterialInstance(0);
+	ScreenInstance->SetScalarParameterValue(FName("setting"), 1.0f);
+	_currentStatusName = "setting";
+	SetIsOperateCellphone();
 }
 
 void APlayerCharacter::FinishGame()
 {
-	
-	if (Matinee_End != nullptr)
+	if (!isEnd)
 	{
+		isEnd = true;
 		class APlayerController * MyPC = Cast<APlayerController>(Controller);
-		MyPC->ClientSetCameraFade(true, FColor::Black, FVector2D(1.0, 0.0), 10.0);
+		MyPC->ClientSetCameraFade(true, FColor::Black, FVector2D(0.0, 1.0), 10.0);
+		//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Step");
 	}
 	else
 	{
-		if (!isEnd)
-		{
-			isEnd = true;
-			class APlayerController * MyPC = Cast<APlayerController>(Controller);
-			MyPC->ClientSetCameraFade(true, FColor::Black, FVector2D(0.0, 1.0), 10.0);
-			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Step");
-		}
-		else
-		{
-			class APlayerController * MyPC = Cast<APlayerController>(Controller);
-			MyPC->ClientSetCameraFade(true, FColor::Black, FVector2D(1.0, 1.0), 10.0);
-		}
+		UKismetSystemLibrary::QuitGame(GetWorld(), 0, EQuitPreference::Quit);
 	}
 }
 
@@ -269,11 +270,11 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 	if (m_isOperateCellphone)
 	{
-		if (m_openAxis > 20.0f)
+		if (m_openAxis > MinOpenAxis)
 		{
 			m_openAxis -= openSpeed * DeltaTime;
 			m_TurnAxis->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_openAxis)));
-			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
+			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis) - cellphoneCorrectValue, 0.0f, distanceOfCellphone));
 			
 		}
 		
@@ -298,7 +299,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 		{
 			m_openAxis += openSpeed * DeltaTime;
 			m_TurnAxis->SetRelativeRotation(FQuat(FRotator(0.0f, 0.0f, m_openAxis)));
-			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis), 0.0f, distanceOfCellphone));
+			m_UnderBodyMesh->SetRelativeLocation(FVector(heightOfCellphone * (1 - m_openAxis / maxOpenAxis) - -cellphoneCorrectValue - cellphoneCorrectValue, 0.0f, distanceOfCellphone));
 			if (m_openAxis >= maxOpenAxis)
 			{
 				SetHiddenCellphone(true);
@@ -444,9 +445,7 @@ void APlayerCharacter::MoveRight(float value)
 		{
 			m_isOperateBank = false;
 			unlockedBankList.Add(m_currentOperateBank);
-			//FirstPersonCamera->SetRelativeLocation(defaultCameraPos);
-			//FVector pos = GetCapsuleComponent()->GetComponentLocation();
-			//GetCapsuleComponent()->SetWorldLocation(FVector(pos.X + (originalCapsuleRadius + 20.0f)*(dir / dir), pos.Y, pos.Z));
+			FinishGame();
 		}
 	}
 	else
@@ -486,6 +485,10 @@ void APlayerCharacter::RightFlashlight(float value)
 void APlayerCharacter::OccurEvent()
 {
 	static int i = 0;
+	if (isEnd)
+	{
+		return;
+	}
 	if (m_isOperateCellphone)
 	{
 		TSharedPtr<SceneNode> ptr = _currentSceneNode->GetNextNode();
@@ -500,7 +503,7 @@ void APlayerCharacter::OccurEvent()
 				if (status.Compare("camera") == 0)
 				{
 					
-					if (currentFocusActor->GetItemName() != ItemName::door && currentFocusActor->GetItemName() != ItemName::bank && ptr->RegisterToLibrary(currentFocusActor))
+					if (currentFocusActor != nullptr && currentFocusActor->GetItemName() != ItemName::door && currentFocusActor->GetItemName() != ItemName::bank && currentFocusActor->GetItemName() != ItemName::noItem && ptr->RegisterToLibrary(currentFocusActor))
 					{
 						ScreenInstance->SetScalarParameterValue(_currentStatusName, 0.0f);
 
@@ -655,6 +658,11 @@ void APlayerCharacter::LoseItem(ItemName itemName)
 
 void APlayerCharacter::SetIsOperateCellphone()
 {
+	if (isEnd)
+	{
+		return;
+	}
+
 	m_isOperateCellphone = !m_isOperateCellphone;
 
 	//camera focas setting
@@ -745,7 +753,7 @@ void APlayerCharacter::SetDofField(float value)
 	else
 	{
 		if(FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance <= DoF_FocalDistance)
-			FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance = DoF_FocalDistance;
+			FirstPersonCamera->PostProcessSettings.DepthOfFieldFocalDistance = DoF_FocalDistance - cellphoneCorrectValue;
 		if(FirstPersonCamera->PostProcessSettings.DepthOfFieldFarTransitionRegion < DoF_FarTransitionRegion)
 			FirstPersonCamera->PostProcessSettings.DepthOfFieldFarTransitionRegion += value * 10000.0f;
 		if(FirstPersonCamera->PostProcessSettings.DepthOfFieldScale < DoF_FieldScale)
@@ -916,7 +924,7 @@ bool APlayerCharacter::LibraryNode::SetFlag(int flag)
 bool APlayerCharacter::LibraryNode::FindFlag(int flag)
 {
 	//GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, "Step" + FString::FromInt(flag));
-	if (flag < 4 && ((1 << flag) & _flags) != 0)
+	if (flag < 5 && ((1 << flag) & _flags) != 0)
 	{
 		return true;
 	}
@@ -930,6 +938,8 @@ FName APlayerCharacter::LibraryNode::GetStatusName()
 	{
 		if (FindFlag(i))
 		{
+			GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, FString::FromInt(_currentRowCount));
+			_currentRowCount = i;
 			return contentNodes[i]->GetStatusName();
 		}
 	}
@@ -1001,6 +1011,7 @@ FName APlayerCharacter::LibraryNode::MoveRight(float value)
 			{
 				int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
 				_rowIntervalCount = 30;
+				GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, FString::FromInt(_currentRowCount));
 				return contentNodes[index]->GetStatusName();
 			}
 		}
@@ -1013,6 +1024,7 @@ FName APlayerCharacter::LibraryNode::MoveRight(float value)
 			{
 				int index = _currentRowCount + _currentLenCount * MAX_ROW_COUNT;
 				_rowIntervalCount = 30;
+				GEngine->AddOnScreenDebugMessage(0, 15.f, FColor::Red, FString::FromInt(_currentRowCount));
 				return contentNodes[index]->GetStatusName();
 			}
 		}

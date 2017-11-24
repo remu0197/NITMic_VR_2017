@@ -2,6 +2,7 @@
 
 #pragma once
 
+
 #include "GameFramework/Character.h"
 #include "PlayerCharacter.generated.h"
 
@@ -249,6 +250,13 @@ private:
 	FTimerHandle handle;
 
 	bool isEnd;
+
+	UPROPERTY(EditAnywhere)
+		float cellphoneCorrectValue;
+
+	UPROPERTY(EditAnywhere)
+		float MinOpenAxis;
+
 /******Debug*******/
 private:
 	static const float maxOpenAxis;

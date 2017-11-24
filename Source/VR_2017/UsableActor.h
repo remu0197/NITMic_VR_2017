@@ -12,6 +12,7 @@ enum class ItemName
 	paper,
 	key,
 	clip,
+	item,
 	noItem,
 	bank,
 	door,
